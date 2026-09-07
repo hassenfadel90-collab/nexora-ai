@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://hassenfadel90-collab.github.io/nexora-ai/sitemap.xml
