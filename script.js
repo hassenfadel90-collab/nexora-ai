@@ -28,8 +28,7 @@ document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
 const form = document.getElementById('leadForm');
 const note = document.getElementById('formNote');
 
-// Later: replace this with your Make webhook URL.
-const MAKE_WEBHOOK_URL = '';
+const MAKE_WEBHOOK_URL = 'https://hook.eu1.make.com/wym5rha3snhq2qe7p2abdjd8hp9wozhg';
 
 form.addEventListener('submit', async (e)=>{
   e.preventDefault();
@@ -40,23 +39,17 @@ form.addEventListener('submit', async (e)=>{
   button.textContent = lang === 'ar' ? 'جاري الإرسال...' : 'Sending...';
 
   try{
-    if(MAKE_WEBHOOK_URL){
-      const res = await fetch(MAKE_WEBHOOK_URL,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify(data)
-      });
-      if(!res.ok) throw new Error('Webhook failed');
-    } else {
-      note.textContent = lang === 'ar' ? 'نموذج التواصل قيد الربط حالياً، لذلك لم يتم إرسال طلبك بعد.' : 'The contact workflow is being connected, so your request was not sent yet.';
-      note.classList.remove('success');
-      return;
-    }
-    note.textContent = lang === 'ar' ? 'تم إرسال طلبك بنجاح.' : 'Your request was sent successfully.';
+    await fetch(MAKE_WEBHOOK_URL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+      body:new URLSearchParams(data).toString()
+    });
+    note.textContent = lang === 'ar' ? 'تم إرسال طلبك بنجاح. سيقوم النظام بتحليله وتجهيز الخطوة التالية.' : 'Your request was sent successfully. Our system will analyze it and prepare the next step.';
     note.classList.add('success');
     form.reset();
   }catch(err){
-    note.textContent = lang === 'ar' ? 'تعذر الإرسال. سنربط النموذج بالـWebhook في الخطوة التالية.' : 'Could not send. We will connect the form to the webhook in the next step.';
+    note.textContent = lang === 'ar' ? 'تعذر الإرسال حالياً. يرجى المحاولة مرة أخرى بعد قليل.' : 'Could not send right now. Please try again shortly.';
     note.classList.remove('success');
   }finally{
     button.disabled = false;
