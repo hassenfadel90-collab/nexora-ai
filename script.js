@@ -48,10 +48,11 @@ form.addEventListener('submit', async (e)=>{
       });
       if(!res.ok) throw new Error('Webhook failed');
     } else {
-      localStorage.setItem('nexora:lastLead', JSON.stringify({...data,createdAt:new Date().toISOString()}));
-      await new Promise(r=>setTimeout(r,700));
+      note.textContent = lang === 'ar' ? 'نموذج التواصل قيد الربط حالياً، لذلك لم يتم إرسال طلبك بعد.' : 'The contact workflow is being connected, so your request was not sent yet.';
+      note.classList.remove('success');
+      return;
     }
-    note.textContent = lang === 'ar' ? 'تم استلام الطلب التجريبي بنجاح. الخطوة التالية: ربطه بالـWorkflow.' : 'Demo request captured successfully. Next: connect it to the workflow.';
+    note.textContent = lang === 'ar' ? 'تم إرسال طلبك بنجاح.' : 'Your request was sent successfully.';
     note.classList.add('success');
     form.reset();
   }catch(err){
