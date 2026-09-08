@@ -7,6 +7,9 @@ const requireText = (text, needle, label) => {
 const forbid = (text, re, label) => {
   if (re.test(text)) throw new Error(`QA failed: ${label} matched ${re}`);
 };
+const assert = (condition, label) => {
+  if (!condition) throw new Error(`QA failed: ${label}`);
+};
 
 const index = read('index.html');
 const styles = read('styles.css');
@@ -18,6 +21,7 @@ const ultraSuite = read('dashboard/suite-88-ultra.js');
 const portal = read('portal/index.html');
 const migration = read('supabase/migrations/20260908_release_88_guardrails.sql');
 const status = read('FEATURES_88_RELEASE_STATUS.md');
+const manifest = JSON.parse(read('FEATURES_88_MANIFEST.json'));
 const serviceWorker = read('service-worker.js');
 
 // Public responsive release gate.
@@ -39,7 +43,24 @@ requireText(ultraSuite, 'White-label', 'white-label capability');
 requireText(ultraSuite, 'Multi-company', 'multi-company capability');
 requireText(portal, 'portal.js', 'client portal script');
 
-// Registry/release accounting.
+// Authoritative 88-feature release accounting.
+assert(manifest.schema_version === 1, 'feature manifest schema version');
+assert(manifest.expected_total === 88, 'manifest expected total must be 88');
+assert(Array.isArray(manifest.features) && manifest.features.length === 88, 'manifest must contain exactly 88 features');
+const numbers = manifest.features.map(x => x.no);
+const keys = manifest.features.map(x => x.key);
+assert(new Set(numbers).size === 88, 'feature numbers must be unique');
+assert(new Set(keys).size === 88, 'feature keys must be unique');
+assert(numbers.every((n, i) => n === i + 1), 'feature numbers must be continuous 1..88');
+const statusCounts = manifest.features.reduce((acc, x) => ((acc[x.status] = (acc[x.status] || 0) + 1), acc), {});
+for (const [name, count] of Object.entries(manifest.expected_status_counts)) {
+  assert(statusCounts[name] === count, `status count ${name} must equal ${count}`);
+}
+const gated = manifest.features.filter(x => x.status === 'approval_gated').map(x => x.no);
+assert(JSON.stringify(gated) === JSON.stringify([38,70,71,72]), 'approval-gated feature numbers must remain 38,70,71,72');
+const ready = manifest.features.filter(x => x.status === 'ready').map(x => x.no);
+assert(JSON.stringify(ready) === JSON.stringify([58,60,61,69]), 'ready feature numbers must remain 58,60,61,69 until final verification');
+
 requireText(status, 'Total capabilities: **88**', '88-capability checklist');
 requireText(status, 'Approval-gated by design: **4**', 'approval gate count');
 requireText(status, '#38 Expense Management', 'expense gate');
@@ -85,4 +106,4 @@ const clientSurface = [index, suite, ultraSuite, portal, serviceWorker].join('\n
 forbid(clientSurface, /service[_-]?role/i, 'privileged Supabase key name in client surface');
 forbid(clientSurface, /sb_secret_[A-Za-z0-9_-]+/i, 'Supabase secret key in client surface');
 
-console.log('NEXORA release-88 static QA: PASS');
+console.log(`NEXORA release-88 static QA: PASS (${manifest.features.length} features; ${statusCounts.live} live / ${statusCounts.ready} ready / ${statusCounts.approval_gated} approval-gated)`);
