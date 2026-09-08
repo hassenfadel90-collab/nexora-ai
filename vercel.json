@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": false,
+  "headers": [
+    {"source":"/","headers":[{"key":"Content-Type","value":"text/html; charset=utf-8"}]},
+    {"source":"/index.html","headers":[{"key":"Content-Type","value":"text/html; charset=utf-8"}]},
+    {"source":"/dashboard/","headers":[{"key":"Content-Type","value":"text/html; charset=utf-8"}]},
+    {"source":"/dashboard/index.html","headers":[{"key":"Content-Type","value":"text/html; charset=utf-8"}]},
+    {"source":"/portal/","headers":[{"key":"Content-Type","value":"text/html; charset=utf-8"}]},
+    {"source":"/portal/index.html","headers":[{"key":"Content-Type","value":"text/html; charset=utf-8"}]},
+    {"source":"/(.*)\\.css","headers":[{"key":"Content-Type","value":"text/css; charset=utf-8"}]},
+    {"source":"/(.*)\\.js","headers":[{"key":"Content-Type","value":"application/javascript; charset=utf-8"}]},
+    {"source":"/manifest.webmanifest","headers":[{"key":"Content-Type","value":"application/manifest+json; charset=utf-8"}]}
+  ]
+}
