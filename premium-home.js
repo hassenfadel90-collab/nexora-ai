@@ -1,1 +1,96 @@
-(()=>{const ready=()=>{document.body.classList.add('premium-home');const hero=document.querySelector('.hero');if(hero&&!document.querySelector('.premium-announcement')){const a=document.createElement('a');a.className='premium-announcement';a.href='#showcase';a.innerHTML='<span>NEXORA AI</span><b>Product Engineering · AI · Automation</b><i>↗</i>';hero.querySelector('.hero-copy')?.prepend(a)}const strip=document.querySelector('.logo-strip');if(strip&&!document.querySelector('.premium-story')){const story=document.createElement('section');story.className='premium-story';story.innerHTML=`<article class="premium-story-card reveal"><div class="premium-story-copy"><span class="premium-story-kicker">DESIGN THAT CONVERTS</span><h2 data-ar="واجهات تبدو بسيطة. لكن كل تفصيل محسوب." data-en="Interfaces that feel simple. Every detail is intentional.">واجهات تبدو بسيطة. لكن كل تفصيل محسوب.</h2><p data-ar="نبني تجربة نظيفة، سريعة، ومتجاوبة تضع المنتج أو الخدمة في مركز الانتباه بدون زحمة بصرية." data-en="We build clean, fast and responsive experiences that keep the product or service at the center without visual clutter.">نبني تجربة نظيفة، سريعة، ومتجاوبة تضع المنتج أو الخدمة في مركز الانتباه بدون زحمة بصرية.</p></div><div class="premium-story-visual"><div class="premium-browser"><div class="premium-browser-top"><i></i><i></i><i></i></div><div class="premium-browser-body"><div class="line big"></div><div class="line med"></div><div class="line"></div><div class="visual"></div></div></div></div></article><article class="premium-story-card reveal"><div class="premium-story-copy"><span class="premium-story-kicker">OPERATIONS, CONNECTED</span><h2 data-ar="مبيعات، مشاريع، موظفين وفواتير. بنظام واحد." data-en="Sales, projects, people and finance. One operating system.">مبيعات، مشاريع، موظفين وفواتير. بنظام واحد.</h2><p data-ar="بدل الأدوات المتفرقة، نخلي بيانات العمل مترابطة من أول Lead إلى التسليم والمتابعة." data-en="Instead of scattered tools, we connect business data from the first lead through delivery and follow-up.">بدل الأدوات المتفرقة، نخلي بيانات العمل مترابطة من أول Lead إلى التسليم والمتابعة.</p></div><div class="premium-story-visual"><div class="premium-ops"><div class="premium-side"></div><div class="premium-main"><div class="premium-metrics"><div class="premium-metric"><span>PIPELINE</span><b>128</b></div><div class="premium-metric"><span>ACTIVE</span><b>12</b></div><div class="premium-metric"><span>AUTOMATED</span><b>36</b></div></div><div class="premium-chart"></div></div></div></div></article><article class="premium-story-card reveal"><div class="premium-story-copy"><span class="premium-story-kicker">AI WITH CONTROL</span><h2 data-ar="ذكاء اصطناعي يساعدك. القرار يبقى بيدك." data-en="AI that assists. You stay in control.">ذكاء اصطناعي يساعدك. القرار يبقى بيدك.</h2><p data-ar="الـAI يحلل، يجهز، يقترح ويختصر العمل، لكن التواصل الخارجي، الصرف والنشر الحساس يبقى خاضعاً للموافقة." data-en="AI analyzes, prepares and recommends, while external communication, spending and sensitive publishing remain approval-gated.">الـAI يحلل، يجهز، يقترح ويختصر العمل، لكن التواصل الخارجي، الصرف والنشر الحساس يبقى خاضعاً للموافقة.</p></div><div class="premium-story-visual"><div class="premium-ai-core"><div class="premium-ai-ring"></div><div class="premium-ai-orb"></div></div></div></article>`;strip.insertAdjacentElement('afterend',story);document.querySelectorAll('.premium-story .reveal').forEach(el=>{if(window.observer)try{observer.observe(el)}catch{}else el.classList.add('in')})}const contact=document.querySelector('#contact');if(contact&&!document.querySelector('.premium-proof')){const p=document.createElement('section');p.className='premium-proof';p.innerHTML=`<div><strong>88</strong><span data-ar="ميزة ضمن Growth OS" data-en="features in Growth OS">ميزة ضمن Growth OS</span></div><div><strong>Human</strong><span data-ar="موافقة قبل الإجراءات الحساسة" data-en="approval before sensitive actions">موافقة قبل الإجراءات الحساسة</span></div><div><strong>AR / EN</strong><span data-ar="واجهة ثنائية اللغة" data-en="bilingual experience">واجهة ثنائية اللغة</span></div><div><strong>Web + AI</strong><span data-ar="منتج واحد من الفكرة للتشغيل" data-en="one system from idea to operations">منتج واحد من الفكرة للتشغيل</span></div>`;contact.parentNode.insertBefore(p,contact)}document.querySelectorAll('img[src*="dashboard-real.png"]').forEach(img=>img.src='/assets/nexora-platform.svg');document.querySelectorAll('.service-card img').forEach(img=>{img.onerror=()=>{img.src='/assets/nexora-platform.svg'}});if(typeof applyLang==='function')try{applyLang(lang)}catch{};};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(ready,0));else setTimeout(ready,0)})();
+(()=>{
+  const q=(s,r=document)=>r.querySelector(s), qa=(s,r=document)=>[...r.querySelectorAll(s)];
+  const setCopy=(el,ar,en)=>{el.dataset.ar=ar;el.dataset.en=en;el.textContent=document.documentElement.lang==='en'?en:ar};
+  const ready=()=>{
+    document.body.classList.add('premium-home','apple-reframe');
+
+    const hero=q('.hero');
+    const heroCopy=q('.hero-copy');
+    const heroVisual=q('.hero-visual');
+    if(hero&&heroCopy){
+      hero.classList.add('apple-hero');
+      const eyebrow=q('.hero .eyebrow');
+      if(eyebrow){eyebrow.innerHTML='<span class="pulse"></span><span data-ar="NEXORA AI — Product Studio" data-en="NEXORA AI — Product Studio">NEXORA AI — Product Studio</span>'}
+      const h1=q('.hero h1');
+      if(h1) h1.innerHTML='<span data-ar="نبني التقنية" data-en="We build technology">نبني التقنية</span><span class="gradient-text" data-ar="لتشعر أنها بسيطة." data-en="that feels effortless.">لتشعر أنها بسيطة.</span>';
+      const lead=q('.hero-lead');
+      if(lead) setCopy(lead,'مواقع، أنظمة، ذكاء اصطناعي وأتمتة — مصممة كتجربة واحدة سريعة وواضحة وقابلة للنمو.','Websites, software, AI and automation — designed as one fast, clear and scalable experience.');
+      const second=q('.hero-cta .btn-ghost');
+      if(second){second.href='#appleStories';setCopy(second,'اكتشف التجربة','Explore the experience')}
+      if(!q('.apple-hero-note',heroCopy)){
+        const note=document.createElement('p');note.className='apple-hero-note';
+        note.innerHTML='<span data-ar="من العراق إلى العالم" data-en="Built in Iraq. Ready for the world.">من العراق إلى العالم</span><i></i><span>Human approval on sensitive actions</span>';
+        q('.hero-cta',heroCopy)?.insertAdjacentElement('afterend',note);
+      }
+    }
+    if(heroVisual) heroVisual.classList.add('apple-device-stage');
+
+    const strip=q('.logo-strip');
+    if(strip && !q('#appleStories')){
+      const stage=document.createElement('section');stage.id='appleStories';stage.className='apple-stories';
+      stage.innerHTML=`
+        <div class="apple-section-intro reveal">
+          <span class="apple-kicker">NEXORA GROWTH OS</span>
+          <h2 data-ar="كل ما يحتاجه العمل. في نظام واحد." data-en="Everything your business needs. One system.">كل ما يحتاجه العمل. في نظام واحد.</h2>
+          <p data-ar="بدل الأدوات المتفرقة، نربط الموقع والمبيعات والمشاريع والعملاء والذكاء الاصطناعي ضمن تجربة موحدة." data-en="Instead of scattered tools, we connect your website, sales, projects, clients and AI in one unified experience.">بدل الأدوات المتفرقة، نربط الموقع والمبيعات والمشاريع والعملاء والذكاء الاصطناعي ضمن تجربة موحدة.</p>
+        </div>
+        <article class="apple-feature apple-feature-light reveal">
+          <div class="apple-feature-copy">
+            <span class="apple-kicker">DIGITAL EXPERIENCE</span>
+            <h3 data-ar="واجهة تحكي قيمة مشروعك قبل أي كلمة." data-en="An interface that communicates value before a word is spoken.">واجهة تحكي قيمة مشروعك قبل أي كلمة.</h3>
+            <p data-ar="تصميم هادئ، محتوى مركز، انتقالات ناعمة، وتجربة Mobile‑first تعطي منتجك المساحة التي يستحقها." data-en="Calm design, focused content, fluid motion and a mobile-first experience that gives your product room to shine.">تصميم هادئ، محتوى مركز، انتقالات ناعمة، وتجربة Mobile‑first تعطي منتجك المساحة التي يستحقها.</p>
+            <div class="apple-inline-links"><a href="#contact" data-ar="ابدأ مشروعاً" data-en="Start a project">ابدأ مشروعاً</a><a href="#showcase" data-ar="شاهد الأعمال" data-en="See showcase">شاهد الأعمال</a></div>
+          </div>
+          <div class="apple-web-product" aria-hidden="true">
+            <div class="apple-browser-shell">
+              <div class="apple-browser-bar"><i></i><i></i><i></i><span>nexora.ai</span></div>
+              <div class="apple-browser-page"><small>PRODUCT EXPERIENCE</small><b>Less noise.<br>More impact.</b><em></em><div class="apple-browser-grid"><span></span><span></span><span></span></div></div>
+            </div>
+          </div>
+        </article>
+        <article class="apple-feature apple-feature-dark apple-feature-reverse reveal">
+          <div class="apple-feature-copy">
+            <span class="apple-kicker">BUSINESS OPERATING SYSTEM</span>
+            <h3 data-ar="من أول Lead إلى آخر فاتورة." data-en="From the first lead to the final invoice.">من أول Lead إلى آخر فاتورة.</h3>
+            <p data-ar="CRM، مشاريع، مهام، موافقات، فواتير، ملفات، دعم، Timesheets وصحة المشاريع — مترابطة بدون نسخ ولصق." data-en="CRM, projects, tasks, approvals, invoices, files, support, timesheets and project health — connected without copy and paste.">CRM، مشاريع، مهام، موافقات، فواتير، ملفات، دعم، Timesheets وصحة المشاريع — مترابطة بدون نسخ ولصق.</p>
+            <div class="apple-pills"><span>CRM</span><span>Projects</span><span>Finance</span><span>Support</span></div>
+          </div>
+          <div class="apple-os" aria-hidden="true">
+            <aside><strong>N</strong><i></i><i></i><i></i><i></i><i></i></aside>
+            <main><header><span>Command Center</span><b>● LIVE</b></header><div class="apple-os-metrics"><article><small>PIPELINE</small><strong>$48K</strong><em>+18%</em></article><article><small>ACTIVE</small><strong>12</strong><em>projects</em></article><article><small>HEALTH</small><strong>94</strong><em>/100</em></article></div><div class="apple-os-chart"><i></i></div><div class="apple-os-list"><span><b>Website redesign</b><em>On track</em></span><span><b>AI support agent</b><em>Review</em></span><span><b>CRM automation</b><em>Active</em></span></div></main>
+          </div>
+        </article>
+        <article class="apple-feature apple-feature-ai reveal">
+          <div class="apple-feature-copy centered">
+            <span class="apple-kicker">CONTROLLED AI</span>
+            <h3 data-ar="ذكاء اصطناعي سريع. قرارات حساسة بإذن منك." data-en="Fast AI. Sensitive decisions stay yours.">ذكاء اصطناعي سريع. قرارات حساسة بإذن منك.</h3>
+            <p data-ar="النظام يحلل ويجهز ويقترح تلقائياً، بينما التواصل الخارجي والصرف والنشر الحساس يبقى خلف بوابة موافقة بشرية." data-en="The system analyzes, prepares and recommends automatically, while external communication, spending and sensitive publishing stay behind human approval.">النظام يحلل ويجهز ويقترح تلقائياً، بينما التواصل الخارجي والصرف والنشر الحساس يبقى خلف بوابة موافقة بشرية.</p>
+          </div>
+          <div class="apple-ai-scene" aria-hidden="true"><div class="apple-ai-halo"></div><div class="apple-ai-core"><span>N</span></div><div class="apple-ai-orbit one"></div><div class="apple-ai-orbit two"></div><div class="apple-ai-label l1">Analyze</div><div class="apple-ai-label l2">Prepare</div><div class="apple-ai-label l3">Approve</div></div>
+        </article>
+        <div class="apple-bento reveal">
+          <article class="apple-bento-card wide"><span class="apple-kicker">88 CAPABILITIES</span><strong data-ar="من Growth إلى Delivery إلى Finance." data-en="From growth to delivery to finance.">من Growth إلى Delivery إلى Finance.</strong><p data-ar="المزايا موزعة عبر الموقع، لوحة الإدارة وبوابة العملاء مع Feature Registry مركزي." data-en="Capabilities span the public site, admin workspace and client portal with a central feature registry.">المزايا موزعة عبر الموقع، لوحة الإدارة وبوابة العملاء مع Feature Registry مركزي.</p><div class="apple-88"><b>88</b><span>Growth OS</span></div></article>
+          <article class="apple-bento-card"><span class="apple-kicker">CLIENT PORTAL</span><strong data-ar="العميل يرى ما يهمه فقط." data-en="Clients see only what matters.">العميل يرى ما يهمه فقط.</strong><div class="apple-mini-window"><i></i><i></i><i></i></div><a href="/portal/" data-ar="دخول العملاء ↗" data-en="Client login ↗">دخول العملاء ↗</a></article>
+          <article class="apple-bento-card"><span class="apple-kicker">TEAM WORKSPACE</span><strong data-ar="قرارات أسرع. معلومات أوضح." data-en="Faster decisions. Clearer context.">قرارات أسرع. معلومات أوضح.</strong><div class="apple-rings"><i></i><i></i><i></i></div><a href="/dashboard/" data-ar="لوحة الإدارة ↗" data-en="Staff dashboard ↗">لوحة الإدارة ↗</a></article>
+        </div>`;
+      strip.insertAdjacentElement('afterend',stage);
+    }
+
+    qa('.premium-story').forEach(el=>el.remove());
+    if(!q('.apple-final-cta')){
+      const contact=q('#contact');
+      if(contact){const c=document.createElement('section');c.className='apple-final-cta reveal';c.innerHTML='<span class="apple-kicker">START SOMETHING BETTER</span><h2 data-ar="فكرتك. لكن بتجربة أقوى." data-en="Your idea. With a stronger experience.">فكرتك. لكن بتجربة أقوى.</h2><p data-ar="احچيلنا شنو تريد تبني، ونحولها إلى خطة واضحة قابلة للتنفيذ." data-en="Tell us what you want to build and we’ll turn it into a clear, executable plan.">احچيلنا شنو تريد تبني، ونحولها إلى خطة واضحة قابلة للتنفيذ.</p><a class="btn btn-primary btn-lg" href="#contact" data-ar="ابدأ مشروعك" data-en="Start your project">ابدأ مشروعك</a>';contact.parentNode.insertBefore(c,contact)}
+    }
+
+    if(!q('.apple-scroll-progress')){const p=document.createElement('div');p.className='apple-scroll-progress';p.innerHTML='<i></i>';document.body.appendChild(p)}
+    const progress=q('.apple-scroll-progress i');
+    const onScroll=()=>{const max=document.documentElement.scrollHeight-innerHeight;const r=max>0?scrollY/max:0;if(progress)progress.style.transform=`scaleX(${r})`;qa('.apple-feature').forEach(card=>{const rect=card.getBoundingClientRect(),mid=innerHeight*.55,delta=Math.max(-1,Math.min(1,(rect.top-mid)/innerHeight));card.style.setProperty('--shift',`${delta*14}px`)})};
+    addEventListener('scroll',onScroll,{passive:true});onScroll();
+
+    if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.12});qa('.apple-stories .reveal,.apple-final-cta').forEach(x=>io.observe(x))}
+    else qa('.apple-stories .reveal,.apple-final-cta').forEach(x=>x.classList.add('in'));
+
+    if(typeof applyLang==='function')try{applyLang(lang)}catch{}
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
+})();
