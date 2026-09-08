@@ -1,11 +1,39 @@
 const URL='https://tkcfrjxyvnguvvbnqpxj.supabase.co',KEY='sb_publishable_946_5GgY_4_JOTarypoMlw_nA_YuVXe',sb=window.supabase.createClient(URL,KEY),$=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const state={user:null,profile:null,projects:[],tasks:[],proposals:[],invoices:[],items:[],files:[]};const esc=(v='')=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])),date=v=>v?new Intl.DateTimeFormat('ar-IQ',{year:'numeric',month:'short',day:'numeric'}).format(new Date(v)):'—',money=(n,c='USD')=>n==null?'—':`${Number(n).toLocaleString()} ${c}`;
-function theme(){const t=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=t;localStorage.setItem('nexora-theme',t);$('#themeBtn').textContent=$('#themeBtn2').textContent=t==='light'?'☾':'☀'}function toast(m,e=false){const t=$('#toast');t.textContent=m;t.className='toast show'+(e?' error':'');clearTimeout(toast.x);toast.x=setTimeout(()=>t.className='toast',3000)}function note(m,e=false,o=false){$('#note').textContent=m;$('#note').className='note'+(e?' error':o?' ok':'')}
+function theme(){const t=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=t;localStorage.setItem('nexora-theme',t);$('#themeBtn').textContent=$('#themeBtn2').textContent=t==='light'?'☾':'☀'}function toast(m,e=false){const t=$('#toast');t.textContent=m;t.className='toast show'+(e?' error':'');clearTimeout(toast.x);toast.x=setTimeout(()=>t.className='toast',4500)}function note(m,e=false,o=false){$('#note').textContent=m;$('#note').className='note'+(e?' error':o?' ok':'')}
 function syncThemeButtons(){const i=document.documentElement.dataset.theme==='light'?'☾':'☀';$('#themeBtn').textContent=i;$('#themeBtn2').textContent=i}syncThemeButtons();
-async function login(e){e.preventDefault();const {error}=await sb.auth.signInWithPassword({email:$('#email').value.trim(),password:$('#password').value});if(error)return note(error.message,true);init()}
-async function signup(){const email=$('#email').value.trim(),password=$('#password').value;if(password.length<8)return note('كلمة المرور 8 أحرف على الأقل.',true);const {data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/portal/'}});if(error)return note(error.message,true);if(data.session)init();else note('تم إنشاء الحساب. أكّد البريد من الرسالة ثم سجّل الدخول.',false,true)}
-async function resend(){const {error}=await sb.auth.resend({type:'signup',email:$('#email').value.trim(),options:{emailRedirectTo:location.origin+'/portal/'}});if(error)return note(error.message,true);note('تمت إعادة رسالة التأكيد.',false,true)}
-async function init(){const {data:{user}}=await sb.auth.getUser();if(!user)return showAuth();state.user=user;const {data:p}=await sb.from('client_profiles').select('*').eq('id',user.id).maybeSingle();if(!p?.active){await sb.auth.signOut();showAuth();return note('هذا البريد غير مضاف إلى Client Portal لأي مشروع.',true)}state.profile=p;$('#clientName').textContent=p.full_name||p.email;$('#clientEmail').textContent=p.email;$('#authView').classList.add('hidden');$('#appView').classList.remove('hidden');await refresh()}
+async function login(e){e.preventDefault();note('جاري تسجيل الدخول…');const {error}=await sb.auth.signInWithPassword({email:$('#email').value.trim(),password:$('#password').value});if(error)return note(error.message,true);init()}
+async function signup(){
+  const email=$('#email').value.trim().toLowerCase(),password=$('#password').value;
+  if(!email)return note('اكتب البريد الإلكتروني أولاً.',true);
+  if(password.length<8)return note('كلمة المرور 8 أحرف على الأقل.',true);
+  note('جاري إنشاء الحساب وإرسال رسالة التأكيد…');
+  const redirect=`${location.origin}/portal/`;
+  const {data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:redirect,data:{portal:'client'}}});
+  if(error){
+    const msg=String(error.message||'');
+    if(/not authorized|email address not authorized|smtp|sending confirmation/i.test(msg)){
+      return note('تعذر إرسال رسالة التأكيد لهذا البريد حالياً. نظام البريد الخاص بالحسابات يحتاج تفعيل SMTP قبل قبول حسابات العملاء العامة.',true);
+    }
+    return note(msg||'تعذر إنشاء الحساب.',true);
+  }
+  if(!data?.user)return note('لم يتم إنشاء الحساب. حاول مرة أخرى بعد تفعيل خدمة البريد.',true);
+  if(data.session)return init();
+  note('تم إنشاء الحساب وإرسال رسالة التأكيد. افتح بريدك واضغط رابط التأكيد ثم سجّل الدخول. افحص Spam/Junk أيضاً.',false,true);
+}
+async function resend(){
+  const email=$('#email').value.trim().toLowerCase();
+  if(!email)return note('اكتب البريد الإلكتروني أولاً.',true);
+  note('جاري إعادة إرسال رسالة التأكيد…');
+  const {error}=await sb.auth.resend({type:'signup',email,options:{emailRedirectTo:`${location.origin}/portal/`}});
+  if(error){
+    const msg=String(error.message||'');
+    if(/not authorized|email address not authorized|smtp/i.test(msg))return note('لا يمكن إرسال رسالة التأكيد لهذا البريد قبل تفعيل SMTP للحسابات العامة.',true);
+    return note(msg,true);
+  }
+  note('تمت إعادة رسالة التأكيد. افحص Inbox وSpam/Junk.',false,true);
+}
+async function init(){const {data:{user}}=await sb.auth.getUser();if(!user)return showAuth();state.user=user;const {data:p}=await sb.from('client_profiles').select('*').eq('id',user.id).maybeSingle();if(!p?.active){await sb.auth.signOut();showAuth();return note('تم تأكيد البريد، لكن هذا الحساب غير مربوط بعد بمشروع داخل Client Portal. تواصل مع NEXORA لإضافته.',true)}state.profile=p;$('#clientName').textContent=p.full_name||p.email;$('#clientEmail').textContent=p.email;$('#authView').classList.add('hidden');$('#appView').classList.remove('hidden');await refresh()}
 function showAuth(){$('#authView').classList.remove('hidden');$('#appView').classList.add('hidden')}
 async function refresh(){const [pr,ta,po,iv,it,fi]=await Promise.all([sb.from('projects').select('*').order('created_at',{ascending:false}),sb.from('tasks').select('*').order('created_at',{ascending:false}),sb.from('proposals').select('*').order('created_at',{ascending:false}),sb.from('invoices').select('*').order('created_at',{ascending:false}),sb.from('invoice_items').select('*'),sb.from('project_files').select('*').order('created_at',{ascending:false})]);for(const r of [pr,ta,po,iv,it,fi])if(r.error)return toast(r.error.message,true);state.projects=pr.data||[];state.tasks=ta.data||[];state.proposals=po.data||[];state.invoices=iv.data||[];state.items=it.data||[];state.files=fi.data||[];render()}
 function render(){const open=state.tasks.filter(t=>!['done','cancelled'].includes(t.status)).length,due=state.invoices.filter(i=>!['paid','cancelled'].includes(i.status)).reduce((s,i)=>s+Math.max(Number(i.total||0)-Number(i.amount_paid||0),0),0);$('#stats').innerHTML=[['المشاريع',state.projects.length],['مهام مفتوحة',open],['عروض',state.proposals.length],['مستحقات',money(due,'USD')]].map(([a,b])=>`<div class="stat"><span>${a}</span><strong>${b}</strong></div>`).join('');$('#projects').innerHTML=state.projects.map(p=>{const ts=state.tasks.filter(t=>t.project_id===p.id),done=ts.filter(t=>t.status==='done').length,progress=ts.length?Math.round(done/ts.length*100):0;return `<article class="card"><span class="badge">${esc(p.status)}</span><h3>${esc(p.title)}</h3><p>${esc(p.description||'')}</p><div class="meta"><span class="pill">${progress}%</span><span class="pill">${date(p.deadline)}</span><span class="pill">${ts.length} مهام</span></div><div class="progress"><i style="width:${progress}%"></i></div><button class="btn ghost open" data-id="${p.id}">فتح المشروع</button></article>`}).join('')||'<p>لا توجد مشاريع مرتبطة بحسابك.</p>';$$('.open').forEach(b=>b.onclick=()=>openProject(b.dataset.id))}
