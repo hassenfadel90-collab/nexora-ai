@@ -1,0 +1,48 @@
+name: Deploy NEXORA to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare static site
+        run: |
+          mkdir -p _site/dashboard _site/portal _site/assets
+          cp index.html styles.css script.js base-styles.css base-script.js premium-home.css premium-home.js apple-ultra.css responsive-fix.css ultra-home.css ultra-qa.css manifest.webmanifest service-worker.js robots.txt sitemap.xml _site/
+          cp -r assets/. _site/assets/
+          cp dashboard/index.html dashboard/dashboard.css dashboard/dashboard.js dashboard/dashboard-base.js dashboard/dashboard-core.js dashboard/suite-88.css dashboard/suite-88.js dashboard/suite-88-ultra.css dashboard/suite-88-ultra.js dashboard/client-invites.js _site/dashboard/
+          cp portal/index.html portal/portal.css portal/portal.js portal/portal-activation.js _site/portal/
+          touch _site/.nojekyll
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
