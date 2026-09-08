@@ -9,6 +9,8 @@ Branch: `release-88-ultra`
 - Approval-gated by design: **4**
 - Ready / pending final verification: **4**
 
+`FEATURES_88_MANIFEST.json` is the authoritative release snapshot exported from `public.feature_registry`. The release QA now rejects duplicate feature numbers/keys, gaps in 1–88 numbering, incorrect status counts, or movement of the four human-approval capabilities out of `approval_gated`.
+
 ## Approval-gated capabilities
 
 These remain intentionally gated and must not auto-send, auto-spend, auto-pay, or auto-publish:
@@ -22,10 +24,10 @@ A final-release Supabase migration is staged in this branch to enforce approval 
 
 ## Ready capabilities pending final verification
 
-- #58 Backup Status — branch UI now performs evidence-based database/health verification and explicitly avoids claiming managed backups without provider evidence.
-- #60 Multi-company Ready — branch UI now supports isolated company contexts in workspace metadata.
-- #61 White-label Mode — branch UI now provides authorized brand configuration and preview without changing production branding early.
-- #69 Localization Manager — branch UI now provides AR/EN locale configuration with RTL/LTR-ready preview state.
+- #58 Backup Status — branch UI performs evidence-based database/health verification and explicitly avoids claiming managed backups without provider evidence.
+- #60 Multi-company Ready — branch UI supports isolated company contexts in workspace metadata.
+- #61 White-label Mode — branch UI provides authorized brand configuration and preview without changing production branding early.
+- #69 Localization Manager — branch UI provides AR/EN locale configuration with RTL/LTR-ready preview state.
 
 The last three are implemented in `release-88-ultra` and remain registry-`ready` until the branch is authenticated and verified during final pre-release QA. Backup Status remains verification-only by design.
 
@@ -40,20 +42,27 @@ The final homepage must pass visual/responsive verification at:
 
 Required checks: no horizontal overflow, no clipped CTAs, readable typography, stable header, fluid product scenes, reduced-motion support, keyboard focus visibility, and correct AR/EN direction.
 
-A final `ultra-qa.css` guardrail layer is now loaded last on the release branch to constrain overflow, responsive grids, product scenes, large-screen widths and reduced-motion behavior.
+A final `ultra-qa.css` guardrail layer is loaded last on the release branch to constrain overflow, responsive grids, product scenes, large-screen widths and reduced-motion behavior.
 
 ## Integration state
 
-Existing active Make scenarios retained and healthy in the latest inspected executions:
+Existing active Make scenarios retained:
 
-1. NEXORA Website Lead Intake v1
-2. NEXORA Dashboard AI Assistant v1
+1. NEXORA Website Lead Intake v1 — active, zero incomplete executions; latest inspected runs on 2026-09-08 succeeded.
+2. NEXORA Dashboard AI Assistant v1 — active, zero incomplete executions.
 
-No outbound-contact, spending, payment, or sensitive-publication automation is to be added without the existing human approval layer.
+No outbound-contact, spending, payment, or sensitive-publication automation is to be added without the human approval layer.
 
 ## Backend safety gate
 
-Supabase security/performance advisors were re-run. Existing warnings are documented for final hardening. The staged final-release migration adds missing foreign-key indexes, optimizes two auth-heavy RLS predicates, and adds approval-state database guards. The migration remains unapplied until the final combined release.
+Supabase is `ACTIVE_HEALTHY`; all public application tables currently report RLS enabled. Security/performance advisors were re-run on 2026-09-08. The staged final-release migration covers all 13 currently reported unindexed foreign keys, optimizes the two reported auth-heavy RLS predicates, and adds database-level approval-state guards. The migration remains unapplied until the final combined release.
+
+Known advisor items intentionally held for final hardening/review:
+
+- `intake_rate_limits` has RLS enabled with no browser policy; this is intentionally non-browser-accessible.
+- Three admin RPCs remain `SECURITY DEFINER` because they must update protected identity/team records; their function bodies enforce owner/admin authorization and their ACL excludes `anon`/`PUBLIC`. This accepted warning must be rechecked immediately before release.
+- Supabase Auth leaked-password protection is currently disabled and requires provider/auth configuration review before declaring the security gate fully complete.
+- Several multiple-permissive-policy warnings remain; they require semantic RLS consolidation rather than blind removal and are therefore not changed during an intermediate branch run.
 
 ## Release rule
 
