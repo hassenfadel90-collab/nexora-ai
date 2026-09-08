@@ -33,6 +33,19 @@ jobs:
           cp portal/index.html portal/portal.css portal/portal.js portal/portal-activation.js _site/portal/
           touch _site/.nojekyll
 
+          # GitHub Pages serves this repository under /nexora-ai/.
+          # Rewrite only production-site absolute paths inside the artifact;
+          # source files remain host-neutral for Vercel/Netlify/custom domains.
+          sed -i 's#href="/portal/#href="/nexora-ai/portal/#g; s#href="/dashboard/#href="/nexora-ai/dashboard/#g; s#href="/"#href="/nexora-ai/"#g; s#src="/assets/#src="/nexora-ai/assets/#g' _site/index.html _site/dashboard/index.html _site/portal/index.html
+          sed -i "s#url('/#url('/nexora-ai/#g" _site/styles.css
+          sed -i "s#load('/base-script.js#load('/nexora-ai/base-script.js#g; s#load('/premium-home.js#load('/nexora-ai/premium-home.js#g" _site/script.js
+          sed -i "s#href=\"/dashboard/#href=\"/nexora-ai/dashboard/#g; s#href=\"/portal/#href=\"/nexora-ai/portal/#g; s#l.href='/manifest.webmanifest#l.href='/nexora-ai/manifest.webmanifest#g; s#register('/service-worker.js#register('/nexora-ai/service-worker.js#g" _site/base-script.js
+          sed -i "s#href=\"/portal/#href=\"/nexora-ai/portal/#g; s#href=\"/dashboard/#href=\"/nexora-ai/dashboard/#g" _site/premium-home.js
+          sed -i "s#'/dashboard/#'/nexora-ai/dashboard/#g" _site/dashboard/dashboard.js _site/dashboard/suite-88.js _site/dashboard/suite-88-ultra.js
+          sed -i "s#location.origin+'/dashboard/#location.origin+'/nexora-ai/dashboard/#g" _site/dashboard/dashboard-base.js
+          sed -i "s#href=\"/dashboard/#href=\"/nexora-ai/dashboard/#g; s#href=\"/portal/#href=\"/nexora-ai/portal/#g; s#href=\"/\"#href=\"/nexora-ai/\"#g" _site/dashboard/index.html _site/portal/index.html
+          sed -i "s#const SHELL=\['/','/styles.css','/script.js','/dashboard/','/portal/'\]#const SHELL=['/nexora-ai/','/nexora-ai/styles.css','/nexora-ai/script.js','/nexora-ai/dashboard/','/nexora-ai/portal/']#; s#caches.match('/')#caches.match('/nexora-ai/')#g" _site/service-worker.js
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
