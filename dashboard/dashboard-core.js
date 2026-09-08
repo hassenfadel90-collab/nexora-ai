@@ -1,0 +1,62 @@
+const THEME_KEY='nexora-theme';
+const FONT_KEY='nexora-font-size',DENSITY_KEY='nexora-density',AUTH_EMAIL_KEY='nexora-auth-email';
+let passwordRecoveryMode=false;
+function applyUiPreferences(){
+  const fs=localStorage.getItem(FONT_KEY)||'normal',density=localStorage.getItem(DENSITY_KEY)||'comfortable';
+  document.documentElement.dataset.fontSize=fs;document.documentElement.dataset.density=density;
+  $$('.font-scale-control button').forEach(b=>b.classList.toggle('active',b.dataset.fontSize===fs));
+  const d=$('#densityToggle');if(d)d.textContent=density==='compact'?'Compact':'Comfortable';
+}
+function setFontSize(size){localStorage.setItem(FONT_KEY,size);applyUiPreferences()}
+function toggleDensity(){const n=(document.documentElement.dataset.density==='compact')?'comfortable':'compact';localStorage.setItem(DENSITY_KEY,n);applyUiPreferences()}
+
+const SUPABASE_URL='https://tkcfrjxyvnguvvbnqpxj.supabase.co';
+const SUPABASE_KEY='sb_publishable_946_5GgY_4_JOTarypoMlw_nA_YuVXe';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const state={user:null,profile:null,leads:[],projects:[],tasks:[],profiles:[],team:[],activity:[],proposals:[],invoices:[],invoiceItems:[],approvals:[],services:[],files:[],prospects:[],notifications:[],clientAccess:[],autopilotRuns:[],autopilotSettings:[],communicationDrafts:[],ownerBriefs:[],healthEvents:[],leadView:'table'};
+const titles={overview:'نظرة عامة',leads:'CRM / Leads',prospects:'Lead Finder',projects:'المشاريع',tasks:'المهام',proposals:'العروض',invoices:'الفواتير',approvals:'مركز الموافقات',services:'كتالوج الخدمات',files:'الملفات',employees:'الموظفون',analytics:'التحليلات',assistant:'AI Assistant',autopilot:'NEXORA Autopilot',activity:'سجل النشاط'};
+const roles={owner:'Owner',admin:'Admin',manager:'Manager',sales:'Sales',developer:'Developer'};
+const leadStatuses=['new','analyzed','demo_ready','contacted','interested','paid','delivered','lost'];
+const statusAr={new:'جديد',analyzed:'محلل',demo_ready:'Demo جاهز',contacted:'تم التواصل',interested:'مهتم',paid:'مدفوع',delivered:'مسلّم',lost:'مفقود',planned:'مخطط',active:'نشط',on_hold:'متوقف',completed:'مكتمل',cancelled:'ملغي',todo:'Todo',in_progress:'قيد التنفيذ',review:'مراجعة',done:'منجز',draft:'مسودة',approved:'موافق عليه',sent:'مرسل',accepted:'مقبول',rejected:'مرفوض',partial:'جزئي',overdue:'متأخر',pending:'بانتظار الموافقة',qualified:'مؤهل',researching:'بحث',converted:'محوّل',generating:'جاري التجهيز',ready:'جاهز للموافقة',error:'خطأ'};
+const money=(n,c='USD')=>n==null?'—':`${Number(n).toLocaleString(undefined,{maximumFractionDigits:2})} ${c}`;
+const esc=(v='')=>String(v??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));
+const short=(v,n=70)=>String(v||'').length>n?String(v||'').slice(0,n)+'…':String(v||'');
+const date=(v,withTime=false)=>{if(!v)return'—';const d=new Date(v);return new Intl.DateTimeFormat('ar-IQ',withTime?{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}:{year:'numeric',month:'short',day:'numeric'}).format(d)};
+const badge=s=>`<span class="badge ${esc(s)}">${esc(statusAr[s]||s||'—')}</span>`;
+const roleManagement=()=>['owner','admin','manager'].includes(state.profile?.role), roleOwnerAdmin=()=>['owner','admin'].includes(state.profile?.role);
+const profileName=id=>state.profiles.find(p=>p.id===id)?.full_name||state.profiles.find(p=>p.id===id)?.email||'غير معيّن';
+const projectName=id=>state.projects.find(p=>p.id===id)?.title||'—';
+const leadName=id=>state.leads.find(l=>l.id===id)?.name||'—';
+function toast(msg,error=false){const t=$('#toast');t.textContent=msg;t.className='toast show'+(error?' error':'');clearTimeout(toast.t);toast.t=setTimeout(()=>t.className='toast',3300)}
+function currentTheme(){return document.documentElement.dataset.theme==='light'?'light':'dark'}
+function applyTheme(theme,persist=true){const next=theme==='light'?'light':'dark';document.documentElement.dataset.theme=next;if(persist)try{localStorage.setItem(THEME_KEY,next)}catch{};const light=next==='light';$$('.theme-toggle').forEach(b=>{b.querySelector('.theme-icon').textContent=light?'☾':'☀';const l=b.querySelector('.theme-label');if(l)l.textContent=light?'داكن':'مضيء'});const m=$('meta[name="theme-color"]');if(m)m.content=light?'#f4f7fb':'#08111f'}
+const toggleTheme=()=>applyTheme(currentTheme()==='light'?'dark':'light');
+function setAuthNote(msg,error=false,ok=false){const n=$('#authNote');n.textContent=msg;n.className='auth-note'+(error?' error':ok?' ok':'')}
+function authRedirectUrl(){return `${window.location.origin}/dashboard/`}
+function switchAuthTab(tab){passwordRecoveryMode=false;$$('.auth-tab').forEach(b=>b.classList.toggle('active',b.dataset.authTab===tab));$$('[data-auth-panel]').forEach(p=>p.classList.toggle('active',p.dataset.authPanel===tab));$('#recoveryForm')?.classList.add('hidden');setAuthNote(tab==='activate'?'فعّل الحساب فقط إذا أضافك Owner أو Admin إلى الفريق.':'الدخول مخصص للحسابات المعتمدة ضمن فريق NEXORA.')}
+function togglePassword(inputId,button){const input=$(inputId);if(!input)return;const show=input.type==='password';input.type=show?'text':'password';button.textContent=show?'◌':'◉';button.setAttribute('aria-label',show?'إخفاء كلمة المرور':'إظهار كلمة المرور')}
+function restoreSavedEmail(){try{const email=localStorage.getItem(AUTH_EMAIL_KEY)||'';if(email){$('#authEmail').value=email;$('#rememberEmail').checked=true}}catch{}}
+function persistEmailChoice(email){try{if($('#rememberEmail').checked)localStorage.setItem(AUTH_EMAIL_KEY,email);else localStorage.removeItem(AUTH_EMAIL_KEY)}catch{}}
+async function authSubmit(e){e.preventDefault();setAuthNote('جاري تسجيل الدخول…');const email=$('#authEmail').value.trim(),password=$('#authPassword').value;if(!email||!password)return setAuthNote('أدخل البريد وكلمة المرور.',true);persistEmailChoice(email);const {error}=await sb.auth.signInWithPassword({email,password});if(error){const msg=error.message==='Invalid login credentials'?'البريد أو كلمة المرور غير صحيحة.':error.message;return setAuthNote(msg,true)}await initSession()}
+async function signup(){const email=$('#activateEmail').value.trim(),password=$('#activatePassword').value;if(!email)return setAuthNote('أدخل البريد المعتمد أولاً.',true);if(password.length<8)return setAuthNote('كلمة المرور يجب أن تكون 8 أحرف على الأقل.',true);setAuthNote('جاري تفعيل الحساب…');const {data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:authRedirectUrl()}});if(error)return setAuthNote(error.message,true);if(data.session)await initSession();else setAuthNote('تم إنشاء الحساب. افتح رسالة التأكيد في بريدك ثم ارجع وسجّل الدخول.',false,true)}
+async function resendConfirmation(){const email=$('#activateEmail').value.trim()||$('#authEmail').value.trim();if(!email)return setAuthNote('أدخل البريد أولاً.',true);setAuthNote('جاري إرسال رسالة التأكيد…');const {error}=await sb.auth.resend({type:'signup',email,options:{emailRedirectTo:authRedirectUrl()}});if(error)return setAuthNote(error.message,true);setAuthNote('أُعيد إرسال رسالة التأكيد. تحقق من Inbox وSpam.',false,true)}
+async function sendMagicLink(){const email=$('#authEmail').value.trim();if(!email)return setAuthNote('أدخل البريد أولاً.',true);persistEmailChoice(email);setAuthNote('جاري إرسال رابط الدخول…');const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:authRedirectUrl()}});if(error)return setAuthNote(error.message,true);setAuthNote('تم إرسال Magic Link إلى بريدك. افتحه من نفس الجهاز أو أي جهاز موثوق.',false,true)}
+async function forgotPassword(){const email=$('#authEmail').value.trim();if(!email)return setAuthNote('أدخل البريد أولاً.',true);setAuthNote('جاري إرسال رابط الاستعادة…');const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:authRedirectUrl()});if(error)return setAuthNote(error.message,true);setAuthNote('تم إرسال رابط استعادة كلمة المرور. تحقق من بريدك وSpam.',false,true)}
+function showRecoveryForm(){passwordRecoveryMode=true;$('#authView').classList.remove('hidden');$('#appView').classList.add('hidden');$$('[data-auth-panel]').forEach(p=>p.classList.remove('active'));$$('.auth-tab').forEach(b=>b.classList.remove('active'));$('#recoveryForm').classList.remove('hidden');setAuthNote('رابط الاستعادة صالح. اختر كلمة مرور جديدة الآن.',false,true)}
+async function recoverySubmit(e){e.preventDefault();const a=$('#recoveryPassword').value,b=$('#recoveryPasswordConfirm').value;if(a.length<8)return setAuthNote('كلمة المرور يجب أن تكون 8 أحرف على الأقل.',true);if(a!==b)return setAuthNote('كلمتا المرور غير متطابقتين.',true);setAuthNote('جاري حفظ كلمة المرور…');const {error}=await sb.auth.updateUser({password:a});if(error)return setAuthNote(error.message,true);passwordRecoveryMode=false;setAuthNote('تم تغيير كلمة المرور بنجاح.',false,true);await initSession()}
+async function initSession(){const {data:{user}}=await sb.auth.getUser();if(!user)return showAuth();state.user=user;const {data:profile,error}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();if(error||!profile){await sb.auth.signOut();showAuth();return setAuthNote('هذا البريد غير مضاف إلى فريق NEXORA أو لم يُفعّل بعد.',true)}if(!profile.active){await sb.auth.signOut();showAuth();return setAuthNote('هذا الحساب معطّل.',true)}state.profile=profile;showApp();await refreshAll()}
+function showAuth(){$('#authView').classList.remove('hidden');$('#appView').classList.add('hidden')}
+function showApp(){$('#authView').classList.add('hidden');$('#appView').classList.remove('hidden');$('#miniName').textContent=state.profile.full_name||state.profile.email;$('#miniRole').textContent=roles[state.profile.role]||state.profile.role;$('#avatarMini').textContent=(state.profile.full_name||state.profile.email||'N').trim()[0].toUpperCase();$$('.management-only').forEach(el=>el.style.display=roleManagement()?'':'none');$('#welcomeTitle').textContent=`أهلاً ${state.profile.full_name||''}`.trim()}
+function setSync(t){$('#syncText').textContent=t}
+async function q(p){const r=await p;if(r.error)throw r.error;return r.data||[]}
+async function refreshAll(){if(!state.profile)return;setSync('جاري التحديث…');try{
+  const base=await Promise.all([
+    q(sb.from('leads').select('*').order('created_at',{ascending:false})),q(sb.from('projects').select('*').order('created_at',{ascending:false})),q(sb.from('tasks').select('*').order('created_at',{ascending:false})),q(sb.from('profiles').select('*').order('created_at',{ascending:true})),q(sb.from('proposals').select('*').order('created_at',{ascending:false})),q(sb.from('invoices').select('*').order('created_at',{ascending:false})),q(sb.from('invoice_items').select('*')),q(sb.from('approvals').select('*').order('created_at',{ascending:false})),q(sb.from('service_catalog').select('*').order('created_at',{ascending:true})),q(sb.from('project_files').select('*').order('created_at',{ascending:false})),q(sb.from('prospects').select('*').order('created_at',{ascending:false})),q(sb.from('notifications').select('*').order('created_at',{ascending:false}).limit(100))
+  ]);
+  [state.leads,state.projects,state.tasks,state.profiles,state.proposals,state.invoices,state.invoiceItems,state.approvals,state.services,state.files,state.prospects,state.notifications]=base;
+  if(roleManagement()){
+    const [team,activity,clients,autoRuns,autoSettings,commDrafts,briefs,health]=await Promise.all([q(sb.from('team_access').select('*').order('created_at',{ascending:true})),q(sb.from('activity_log').select('*').order('created_at',{ascending:false}).limit(150)),q(sb.from('client_access').select('*').order('created_at',{ascending:false})),q(sb.from('autopilot_runs').select('*').order('created_at',{ascending:false}).limit(100)),q(sb.from('autopilot_settings').select('*').limit(1)),q(sb.from('communication_drafts').select('*').order('created_at',{ascending:false}).limit(100)),q(sb.from('owner_briefs').select('*').order('brief_date',{ascending:false}).limit(14)),q(sb.from('system_health_events').select('*').order('created_at',{ascending:false}).limit(80))]);state.team=team;state.activity=activity;state.clientAccess=clients;state.autopilotRuns=autoRuns;state.autopilotSettings=autoSettings;state.communicationDrafts=commDrafts;state.ownerBriefs=briefs;state.healthEvents=health;
+  }
+  renderAll();setSync('متصل');
+}catch(e){console.error(e);setSync('خطأ');toast(e.message||'تعذر تحديث البيانات',true)}}
