@@ -1,7 +1,7 @@
 -- NEXORA 88 final-release guardrails.
 -- Prepared on release-88-ultra; DO NOT apply before final combined release verification.
 
--- Performance: cover foreign keys reported by Supabase advisor.
+-- Performance: cover every foreign key currently reported by Supabase advisor.
 create index if not exists autopilot_settings_updated_by_idx on public.autopilot_settings(updated_by);
 create index if not exists changelog_entries_created_by_idx on public.changelog_entries(created_by);
 create index if not exists client_feedback_client_id_idx on public.client_feedback(client_id);
@@ -16,7 +16,7 @@ create index if not exists status_incidents_created_by_idx on public.status_inci
 create index if not exists website_audits_requested_by_idx on public.website_audits(requested_by);
 create index if not exists workspace_settings_updated_by_idx on public.workspace_settings(updated_by);
 
--- RLS init-plan improvements; semantics preserved.
+-- RLS init-plan improvements; authorization semantics preserved.
 drop policy if exists team_access_read on public.team_access;
 create policy team_access_read on public.team_access
 for select to authenticated
@@ -30,7 +30,7 @@ create policy client_access_self_read on public.client_access
 for select to authenticated
 using (lower(email)=lower(coalesce((select auth.jwt()->>'email'),'') ));
 
--- Human approval enforcement for sensitive state transitions.
+-- Every sensitive transition must point to an explicitly reviewed approval record.
 create or replace function private.nexora_has_approved_gate(p_approval_id uuid)
 returns boolean
 language sql
@@ -39,11 +39,16 @@ set search_path=''
 stable
 as $$
   select exists(
-    select 1 from public.approvals a
-    where a.id=p_approval_id and a.status='approved'::public.approval_status
+    select 1
+    from public.approvals a
+    where a.id=p_approval_id
+      and a.status='approved'::public.approval_status
+      and a.reviewed_by is not null
+      and a.reviewed_at is not null
   );
 $$;
 
+-- Expenses: no paid/approved/completed-like transition without a reviewed approval.
 create or replace function private.nexora_guard_expense_state()
 returns trigger
 language plpgsql
@@ -65,6 +70,7 @@ create trigger nexora_expense_approval_guard
 before insert or update of status,approval_id on public.expenses
 for each row execute function private.nexora_guard_expense_state();
 
+-- Content: generated SEO/social/portfolio content remains draft-only until reviewed.
 create or replace function private.nexora_guard_content_state()
 returns trigger
 language plpgsql
@@ -86,6 +92,11 @@ create trigger nexora_content_approval_guard
 before insert or update of status,approval_id on public.content_drafts
 for each row execute function private.nexora_guard_content_state();
 
+-- Outbound communications: attach a real approval record, not only local timestamps.
+alter table public.communication_drafts
+  add column if not exists approval_id uuid references public.approvals(id) on delete set null;
+create index if not exists communication_drafts_approval_id_idx on public.communication_drafts(approval_id);
+
 create or replace function private.nexora_guard_communication_state()
 returns trigger
 language plpgsql
@@ -94,7 +105,18 @@ set search_path=''
 as $$
 begin
   if lower(coalesce(new.status,'')) in ('sent','delivered','sending','queued_for_send') then
-    if new.approved_by is null or new.approved_at is null then
+    if new.approval_id is null
+       or new.approved_by is null
+       or new.approved_at is null
+       or not exists (
+         select 1
+         from public.approvals a
+         where a.id=new.approval_id
+           and a.status='approved'::public.approval_status
+           and a.reviewed_by is not null
+           and a.reviewed_at is not null
+           and a.reviewed_by=new.approved_by
+       ) then
       raise exception 'External communication requires explicit human approval';
     end if;
   end if;
@@ -104,11 +126,11 @@ $$;
 
 drop trigger if exists nexora_communication_approval_guard on public.communication_drafts;
 create trigger nexora_communication_approval_guard
-before insert or update of status,approved_by,approved_at on public.communication_drafts
+before insert or update of status,approval_id,approved_by,approved_at on public.communication_drafts
 for each row execute function private.nexora_guard_communication_state();
 
--- Keep helper functions private.
-revoke all on function private.nexora_has_approved_gate(uuid) from public, anon;
-revoke all on function private.nexora_guard_expense_state() from public, anon;
-revoke all on function private.nexora_guard_content_state() from public, anon;
-revoke all on function private.nexora_guard_communication_state() from public, anon;
+-- Keep guard helpers out of the exposed API surface.
+revoke all on function private.nexora_has_approved_gate(uuid) from public, anon, authenticated;
+revoke all on function private.nexora_guard_expense_state() from public, anon, authenticated;
+revoke all on function private.nexora_guard_content_state() from public, anon, authenticated;
+revoke all on function private.nexora_guard_communication_state() from public, anon, authenticated;
