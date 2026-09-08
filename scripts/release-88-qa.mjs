@@ -52,9 +52,33 @@ for (const marker of [
   'nexora_expense_approval_guard',
   'nexora_content_approval_guard',
   'nexora_communication_approval_guard',
+  'communication_drafts_approval_id_idx',
+  'add column if not exists approval_id uuid references public.approvals(id)',
+  "a.reviewed_by is not null",
+  "a.reviewed_at is not null",
   'requires an approved human approval record',
   'requires explicit human approval'
 ]) requireText(migration, marker, 'staged approval migration');
+
+// Every foreign key currently flagged by the production advisor must be covered in the staged release migration.
+for (const marker of [
+  'autopilot_settings_updated_by_idx',
+  'changelog_entries_created_by_idx',
+  'client_feedback_client_id_idx',
+  'document_versions_created_by_idx',
+  'feature_flags_updated_by_idx',
+  'knowledge_articles_created_by_idx',
+  'project_milestones_created_by_idx',
+  'project_templates_created_by_idx',
+  'proposal_templates_created_by_idx',
+  'qa_reviews_reviewed_by_idx',
+  'status_incidents_created_by_idx',
+  'website_audits_requested_by_idx',
+  'workspace_settings_updated_by_idx'
+]) requireText(migration, marker, 'advisor index coverage');
+
+// Guard helpers must stay private and non-executable from browser roles.
+requireText(migration, 'from public, anon, authenticated', 'private guard execute revocation');
 
 // Frontend must never contain privileged Supabase secrets.
 const clientSurface = [index, suite, ultraSuite, portal, serviceWorker].join('\n');
