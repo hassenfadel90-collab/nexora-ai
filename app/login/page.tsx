@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, useState } from 'react'
+import { FormEvent, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, CheckCircle2, Eye, EyeOff, Loader2, LockKeyhole, Mail, UserPlus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -16,6 +16,13 @@ export default function LoginPage() {
   const [loading,setLoading]=useState(false)
   const [message,setMessage]=useState('')
   const [success,setSuccess]=useState('')
+
+  useEffect(()=>{
+    const params=new URLSearchParams(window.location.search)
+    if(params.get('mode')==='activate')setMode('activate')
+    const supplied=params.get('email')
+    if(supplied)setEmail(normalizeEmail(supplied))
+  },[])
 
   async function submit(e:FormEvent){
     e.preventDefault();setLoading(true);setMessage('');setSuccess('')
