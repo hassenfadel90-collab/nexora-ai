@@ -28,10 +28,10 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p _site/dashboard _site/portal _site/assets _site/security _site/status _site/insights
-          cp index.html styles.css script.js route-guard.js base-styles.css base-script.js premium-home.css premium-home.js apple-ultra.css responsive-fix.css laptop-fix.css layout-final.css ultra-home.css ultra-qa.css manifest.webmanifest service-worker.js robots.txt sitemap.xml _site/
+          cp index.html styles.css script.js route-guard.js base-styles.css base-script.js premium-home.css premium-home.js apple-ultra.css responsive-fix.css laptop-fix.css layout-final.css ultra-home.css ultra-qa.css titanium.css titanium.js manifest.webmanifest service-worker.js robots.txt sitemap.xml _site/
           cp -r assets/. _site/assets/
-          cp dashboard/index.html dashboard/dashboard.css dashboard/dashboard-laptop-fix.css dashboard/dashboard.js dashboard/dashboard-base.js dashboard/dashboard-core.js dashboard/suite-88.css dashboard/suite-88.js dashboard/suite-88-ultra.css dashboard/suite-88-ultra.js dashboard/client-invites.js dashboard/auth-ui-fix.js dashboard/ui-actions.js _site/dashboard/
-          cp portal/index.html portal/portal.css portal/portal.js portal/portal-activation.js portal/portal-auth-fix.js _site/portal/
+          cp dashboard/index.html dashboard/dashboard.css dashboard/dashboard-laptop-fix.css dashboard/dashboard.js dashboard/dashboard-base.js dashboard/dashboard-core.js dashboard/suite-88.css dashboard/suite-88.js dashboard/suite-88-ultra.css dashboard/suite-88-ultra.js dashboard/client-invites.js dashboard/auth-ui-fix.js dashboard/ui-actions.js dashboard/titanium-dashboard.css dashboard/titanium-dashboard.js _site/dashboard/
+          cp portal/index.html portal/portal.css portal/portal.js portal/portal-activation.js portal/portal-auth-fix.js portal/titanium-portal.css portal/titanium-portal.js _site/portal/
           cp security/index.html _site/security/index.html
           cp status/index.html _site/status/index.html
           cp insights/index.html _site/insights/index.html
@@ -47,24 +47,24 @@ jobs:
           home = root / 'index.html'
           text = home.read_text(encoding='utf-8')
           if 'laptop-fix.css' not in text:
-              text = text.replace('</head>', '  <link rel="stylesheet" href="laptop-fix.css?v=ghp-20260909-5" />\n</head>')
+              text = text.replace('</head>', '  <link rel="stylesheet" href="laptop-fix.css?v=ghp-titanium-20260909-1" />\n</head>')
           if 'layout-final.css' not in text:
-              text = text.replace('</head>', '  <link rel="stylesheet" href="layout-final.css?v=ghp-20260909-5" />\n</head>')
-          text = text.replace('href="styles.css"', 'href="styles.css?v=ghp-20260909-5"')
-          text = text.replace('src="script.js"', 'src="script.js?v=ghp-20260909-5"')
+              text = text.replace('</head>', '  <link rel="stylesheet" href="layout-final.css?v=ghp-titanium-20260909-1" />\n</head>')
+          text = text.replace('href="styles.css"', 'href="styles.css?v=ghp-titanium-20260909-1"')
+          text = text.replace('src="script.js"', 'src="script.js?v=ghp-titanium-20260909-1"')
           text = text.replace('assets/dashboard-showcase.jpg', 'assets/nexora-platform.svg')
           home.write_text(text, encoding='utf-8')
 
           dash = root / 'dashboard' / 'index.html'
           text = dash.read_text(encoding='utf-8')
           if 'dashboard-laptop-fix.css' not in text:
-              text = text.replace('</head>', '  <link rel="stylesheet" href="dashboard-laptop-fix.css?v=ghp-20260909-5" />\n</head>')
+              text = text.replace('</head>', '  <link rel="stylesheet" href="dashboard-laptop-fix.css?v=ghp-titanium-20260909-1" />\n</head>')
           dash.write_text(text, encoding='utf-8')
 
           local_roots = [
               'dashboard/', 'portal/', 'security/', 'status/', 'insights/', 'assets/', 'manifest.webmanifest',
-              'service-worker.js', 'base-script.js', 'premium-home.js', 'route-guard.js',
-              'styles.css', 'script.js', 'apple-ultra.css', 'responsive-fix.css',
+              'service-worker.js', 'base-script.js', 'premium-home.js', 'route-guard.js', 'titanium.js',
+              'styles.css', 'script.js', 'titanium.css', 'apple-ultra.css', 'responsive-fix.css',
               'laptop-fix.css', 'layout-final.css', 'ultra-home.css', 'ultra-qa.css'
           ]
 
@@ -84,15 +84,17 @@ jobs:
 
           sw = root / 'service-worker.js'
           t = sw.read_text(encoding='utf-8')
-          t = t.replace("const CACHE='nexora-shell-v1'", "const CACHE='nexora-shell-ghp-v8'")
+          t = t.replace("const CACHE='nexora-shell-v1'", "const CACHE='nexora-shell-ghp-titanium-v1'")
           sw.write_text(t, encoding='utf-8')
 
           required = [
               root / 'index.html', root / 'dashboard' / 'index.html', root / 'portal' / 'index.html',
               root / 'security' / 'index.html', root / 'status' / 'index.html', root / 'insights' / 'index.html',
+              root / 'titanium.css', root / 'titanium.js',
               root / 'laptop-fix.css', root / 'layout-final.css', root / 'dashboard' / 'dashboard-laptop-fix.css',
               root / 'dashboard' / 'auth-ui-fix.js', root / 'dashboard' / 'ui-actions.js',
-              root / 'portal' / 'portal-auth-fix.js'
+              root / 'dashboard' / 'titanium-dashboard.css', root / 'dashboard' / 'titanium-dashboard.js',
+              root / 'portal' / 'portal-auth-fix.js', root / 'portal' / 'titanium-portal.css', root / 'portal' / 'titanium-portal.js'
           ]
           missing = [str(p) for p in required if not p.exists()]
           if missing:
@@ -107,10 +109,12 @@ jobs:
           if bad:
               raise SystemExit('Unscoped GitHub Pages routes remain in: ' + ', '.join(bad))
 
-          print('GitHub Pages route + laptop + showcase QA passed')
+          print('GitHub Pages route + Titanium asset QA passed')
           PY
 
+          find _site -name '*.js' -print0 | xargs -0 -n1 node --check
           python3 qa-interactions.py _site
+          python3 qa-titanium.py _site
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
