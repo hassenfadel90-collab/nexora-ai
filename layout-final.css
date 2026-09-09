@@ -1,0 +1,75 @@
+/* NEXORA final layout hardening — laptop/desktop + showcase text */
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+body{min-width:0}
+main,#top{width:100%;min-width:0}
+.section-shell{width:min(1240px,calc(100% - 48px))!important;margin-inline:auto!important;min-width:0}
+.section-heading{max-width:820px!important}
+
+/* Keep mixed Arabic/English copy readable and isolated. */
+[dir="rtl"] .showcase-card,[dir="rtl"] .feature-ribbon,[dir="rtl"] .architecture-panel{direction:rtl;text-align:right}
+.showcase-card h3,.showcase-card p,.section-heading p,.ribbon-item span,.arch-node small{unicode-bidi:plaintext;overflow-wrap:anywhere;word-break:normal}
+.showcase-head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:14px!important;direction:rtl!important;margin-bottom:18px!important}
+.showcase-head>span{font-weight:800;min-width:0}
+.showcase-head>b{direction:ltr!important;unicode-bidi:isolate!important;white-space:nowrap!important;font-family:Inter,sans-serif!important;letter-spacing:.08em!important}
+
+/* Showcase must never collapse to a narrow strip on laptop. */
+.showcase-wrap{width:min(1240px,calc(100% - 48px))!important}
+.showcase-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:22px!important;width:100%!important;align-items:stretch!important}
+.showcase-card{width:100%!important;min-width:0!important;max-width:none!important;padding:26px!important;border-radius:26px!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
+.showcase-card h3{font-size:clamp(20px,1.55vw,27px)!important;line-height:1.45!important;margin:20px 0 10px!important}
+.showcase-card p{font-size:14px!important;line-height:1.95!important;margin:0!important}
+.browser-shot,.code-shot{width:100%!important;max-width:100%!important;min-width:0!important;aspect-ratio:16/10!important;border-radius:20px!important;overflow:hidden!important}
+.browser-shot img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important}
+.code-shot{display:grid!important;place-items:stretch!important}
+.code-window{width:100%!important;height:100%!important;min-width:0!important;overflow:hidden!important;padding:18px!important}
+.code-window pre{margin:14px 0 0!important;max-width:100%!important;overflow:auto!important;direction:ltr!important;text-align:left!important;white-space:pre-wrap!important;font:500 12px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace!important}
+.feature-ribbon{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:14px!important;width:100%!important;margin-top:20px!important}
+.ribbon-item{min-width:0!important;padding:18px!important}
+.ribbon-item strong{display:block!important;direction:ltr!important;unicode-bidi:isolate!important;margin-bottom:7px!important}
+.architecture-panel{display:grid!important;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr)!important;gap:12px!important;align-items:stretch!important;width:100%!important}
+.arch-node{min-width:0!important}
+
+/* True laptop sizing: 1024–1599px. */
+@media (min-width:1024px) and (max-width:1599px){
+  .section-shell,.site-header,.apple-hero{width:min(1180px,calc(100% - 48px))!important}
+  .site-header{padding-inline:18px!important}
+  .nav-links{gap:clamp(10px,1.15vw,18px)!important}
+  .nav-links a{font-size:clamp(11px,.85vw,13px)!important;white-space:nowrap}
+  .hero{grid-template-columns:minmax(0,1.02fr) minmax(380px,.98fr)!important;gap:clamp(28px,3.2vw,50px)!important;min-height:auto!important;padding-top:clamp(82px,7vw,112px)!important}
+  .hero h1{font-size:clamp(50px,5.6vw,78px)!important;line-height:1.02!important}
+  .hero-visual{min-width:0!important;min-height:480px!important}
+  .dashboard-card{width:min(100%,540px)!important;transform:none!important}
+  .service-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .solution-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .timeline{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  .contact-panel{grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr)!important}
+  .apple-stories{width:min(1260px,calc(100% - 40px))!important}
+  .apple-feature{min-height:auto!important;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)!important;padding:clamp(34px,3vw,52px)!important}
+  .apple-feature-reverse{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)!important}
+}
+
+@media (min-width:1024px) and (max-width:1240px){
+  .showcase-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .showcase-card:last-child{grid-column:1/-1!important}
+  .architecture-panel{grid-template-columns:1fr 1fr!important}
+  .arch-arrow{display:none!important}
+  .feature-ribbon{grid-template-columns:1fr!important}
+}
+
+@media (max-width:1023px){
+  .section-shell,.showcase-wrap{width:calc(100% - 28px)!important}
+  .showcase-grid{grid-template-columns:1fr!important}
+  .showcase-card{padding:22px!important}
+  .feature-ribbon{grid-template-columns:1fr!important}
+  .architecture-panel{grid-template-columns:1fr!important}
+  .arch-arrow{display:none!important}
+}
+
+@media (max-width:720px){
+  .section-shell,.showcase-wrap{width:calc(100% - 20px)!important}
+  .showcase-card{padding:18px!important;border-radius:22px!important}
+  .showcase-card h3{font-size:21px!important}
+  .showcase-card p{font-size:13px!important;line-height:1.85!important}
+  .showcase-head{align-items:flex-start!important;flex-wrap:wrap!important}
+  .browser-shot,.code-shot{aspect-ratio:4/3!important}
+}
