@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, LogOut, MessageSquareMore, Send } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { withBasePath } from '@/lib/base-path'
 
 type Project={id:string;title:string;status:string}
 type Comment={id:string;entity_id:string;body:string;author_id:string;created_at:string}
@@ -42,7 +43,7 @@ export default function ClientMessagesPage(){
     const sb=createClient();const {error}=await sb.from('comments').insert({entity_type:'project',entity_id:selected,body:body.slice(0,5000),visibility:'client',author_id:profile.id})
     setBusy(false);if(error)return setError(error.message);form.reset();await load()
   }
-  async function logout(){const sb=createClient();await sb.auth.signOut();location.href='/portal/login'}
+  async function logout(){const sb=createClient();await sb.auth.signOut();location.href=withBasePath('/portal/login')}
 
   if(loading)return <main className="grid min-h-screen place-items-center bg-[#f6f7f9]"><div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 font-bold text-slate-500 shadow-card">جاري تحميل الرسائل…</div></main>
   if(!profile)return <main className="grid min-h-screen place-items-center bg-[#f6f7f9] px-4"><div className="w-full max-w-lg rounded-[30px] border border-slate-200 bg-white p-8 text-center shadow-soft"><h1 className="text-2xl font-black">يجب تسجيل دخول العميل</h1><Link href="/portal/login" className="btn-primary mt-6">تسجيل الدخول</Link></div></main>
