@@ -16,19 +16,20 @@ This branch is a clean rebuild of NEXORA using Next.js App Router, TypeScript, T
 - `/` — public NEXORA website
 - `/login` — staff/admin authentication
 - `/command` — executive overview
-- `/command/leads` — real CRM leads from Supabase
-- `/command/projects` — real projects workspace
-- `/command/tasks` — real tasks workspace
+- `/command/leads` — CRM leads from Supabase
+- `/command/projects` — projects workspace
+- `/command/tasks` — tasks workspace
 - `/command/team` — team management using secure RPCs
-- `/command/proposals`
-- `/command/invoices`
-- `/command/agents`
-- `/command/automations`
-- `/command/approvals`
-- `/command/analytics`
-- `/command/activity`
-- `/command/settings`
-- `/portal` — client portal foundation
+- `/command/proposals` — proposals
+- `/command/invoices` — invoices and payment status
+- `/command/agents` — AI request monitoring
+- `/command/automations` — autopilot settings and run monitoring
+- `/command/approvals` — approval center
+- `/command/analytics` — operational analytics
+- `/command/activity` — activity log and system health
+- `/command/settings` — workspace settings
+- `/portal` — client portal
+- `/portal/login` — client authentication
 
 ## Supabase
 
@@ -58,8 +59,8 @@ The Owner role is intentionally protected from assignment/deactivation through r
 
 1. Keep `main` production site available.
 2. Build and test V2 on this branch.
-3. Connect remaining modules to existing tables/RPCs.
-4. Run auth/role/RLS QA.
+3. Finish role-specific UI restrictions and remaining client-facing modules.
+4. Run auth/role/RLS and build QA.
 5. Deploy a preview to Vercel.
 6. Only after approval, replace production with V2.
 
@@ -77,6 +78,34 @@ Core palette:
 - Brand `#0071E3`
 - Deep surface `#07111F`
 
-## Status
+## Current implementation status
 
-The foundation, authentication, routed Command shell, CRM Leads, Projects, Tasks and Team modules are in place. Remaining modules should be connected incrementally to preserve data correctness and RLS behavior.
+Implemented in V2:
+
+- Next.js + TypeScript + Tailwind foundation
+- New NEXORA public landing page
+- Staff/Admin login with profile-role validation
+- Routed NEXORA Command application shell
+- CRM Leads: list, filter and create
+- Projects: list/filter/create
+- Tasks: Kanban-style view, create and status updates
+- Team: list, add via secure RPC, role changes and activate/deactivate
+- Proposals: list/create/status workflow
+- Invoices: list/create/status and collection metrics
+- Approvals: pending queue with approve/reject actions
+- AI requests monitor
+- Autopilot/automation settings and run monitor
+- Analytics overview
+- Activity log and system health monitor
+- Workspace settings editor
+- Client portal and client login foundation
+
+Still required before production cutover:
+
+- Build/TypeScript QA in a deployment environment
+- Complete role-specific navigation visibility
+- Complete client project/approval/file isolation UX
+- Notifications/search polish
+- Full Arabic/English switching
+- Final mobile QA
+- Vercel preview and acceptance testing
