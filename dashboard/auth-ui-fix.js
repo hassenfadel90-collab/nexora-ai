@@ -8,10 +8,45 @@
   const humanError=(err)=>{
     const m=String(err?.message||err||'');
     if(/Invalid login credentials/i.test(m))return 'البريد أو كلمة المرور غير صحيحة.';
-    if(/Email not confirmed/i.test(m))return 'البريد غير مؤكد بعد.';
+    if(/Email not confirmed/i.test(m))return 'البريد غير مؤكد بعد. تأكد أيضاً من كتابة نطاق البريد بشكل صحيح، مثل gmail.com.';
     if(/rate limit|too many requests/i.test(m))return 'محاولات كثيرة. انتظر قليلاً ثم أعد المحاولة.';
     if(/network|fetch/i.test(m))return 'تعذر الاتصال بالخادم. تحقق من الإنترنت ثم حاول مجدداً.';
     return m||'حدث خطأ غير متوقع.';
+  };
+
+  // Prevent common Gmail domain typos from creating a second, unconfirmed account
+  // or blocking an existing approved NEXORA account from signing in.
+  const emailDomainFixes={
+    'gmai.com':'gmail.com',
+    'gmial.com':'gmail.com',
+    'gmail.con':'gmail.com'
+  };
+  const normalizeEmail=(value='')=>{
+    const raw=String(value||'').trim().toLowerCase();
+    const at=raw.lastIndexOf('@');
+    if(at<=0)return {email:raw,corrected:false,from:raw};
+    const local=raw.slice(0,at),domain=raw.slice(at+1);
+    const fixed=emailDomainFixes[domain];
+    if(!fixed)return {email:raw,corrected:false,from:raw};
+    return {email:`${local}@${fixed}`,corrected:true,from:raw};
+  };
+  const getEmail=(id)=>{
+    const input=document.getElementById(id);
+    const result=normalizeEmail(input?.value||'');
+    if(input&&result.corrected)input.value=result.email;
+    return result;
+  };
+  const repairRememberedEmail=()=>{
+    try{
+      const saved=localStorage.getItem('nexora-auth-email');
+      if(!saved)return;
+      const fixed=normalizeEmail(saved);
+      if(fixed.corrected){
+        localStorage.setItem('nexora-auth-email',fixed.email);
+        const input=document.getElementById('authEmail');
+        if(input)input.value=fixed.email;
+      }
+    }catch{}
   };
 
   const setLinks=()=>{
@@ -23,14 +58,16 @@
     });
   };
   setLinks();
+  repairRememberedEmail();
 
   const form=document.getElementById('authForm');
   if(form)form.onsubmit=async(e)=>{
     e.preventDefault();
-    const email=document.getElementById('authEmail')?.value.trim().toLowerCase()||'';
+    const emailResult=getEmail('authEmail');
+    const email=emailResult.email;
     const password=document.getElementById('authPassword')?.value||'';
     if(!email||!password)return authNote('أدخل البريد وكلمة المرور.',true);
-    authNote('جاري تسجيل الدخول…');
+    authNote(emailResult.corrected?`تم تصحيح البريد إلى ${email}، وجاري تسجيل الدخول…`:'جاري تسجيل الدخول…');
     const remember=document.getElementById('rememberEmail')?.checked;
     if(remember)localStorage.setItem('nexora-auth-email',email);else localStorage.removeItem('nexora-auth-email');
     const {error}=await sb.auth.signInWithPassword({email,password});
@@ -40,10 +77,11 @@
 
   const forgotBtn=document.getElementById('forgotPasswordBtn');
   if(forgotBtn)forgotBtn.onclick=async()=>{
-    const email=document.getElementById('authEmail')?.value.trim().toLowerCase()||'';
+    const emailResult=getEmail('authEmail');
+    const email=emailResult.email;
     if(!email)return authNote('أدخل البريد الإلكتروني أولاً.',true);
     forgotBtn.disabled=true;
-    authNote('جاري إرسال رابط إعادة تعيين كلمة المرور…');
+    authNote(emailResult.corrected?`تم تصحيح البريد إلى ${email}. جاري إرسال رابط إعادة التعيين…`:'جاري إرسال رابط إعادة تعيين كلمة المرور…');
     const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:recoveryUrl});
     forgotBtn.disabled=false;
     if(error)return authNote(humanError(error),true);
@@ -52,9 +90,11 @@
 
   const magicBtn=document.getElementById('magicLinkBtn');
   if(magicBtn)magicBtn.onclick=async()=>{
-    const email=document.getElementById('authEmail')?.value.trim().toLowerCase()||'';
+    const emailResult=getEmail('authEmail');
+    const email=emailResult.email;
     if(!email)return authNote('أدخل البريد الإلكتروني أولاً.',true);
     magicBtn.disabled=true;
+    if(emailResult.corrected)authNote(`تم تصحيح البريد إلى ${email}. جاري إرسال رابط الدخول…`);
     const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:dashboardUrl}});
     magicBtn.disabled=false;
     authNote(error?humanError(error):'تم إرسال رابط الدخول إلى بريدك.',!!error,!error);
@@ -62,11 +102,12 @@
 
   const signupBtn=document.getElementById('signupBtn');
   if(signupBtn)signupBtn.onclick=async()=>{
-    const email=document.getElementById('activateEmail')?.value.trim().toLowerCase()||'';
+    const emailResult=getEmail('activateEmail');
+    const email=emailResult.email;
     const password=document.getElementById('activatePassword')?.value||'';
     if(!email||password.length<8)return authNote('أدخل البريد المعتمد وكلمة مرور من 8 أحرف على الأقل.',true);
     signupBtn.disabled=true;
-    authNote('جاري تفعيل الحساب…');
+    authNote(emailResult.corrected?`تم تصحيح البريد إلى ${email}. جاري تفعيل الحساب…`:'جاري تفعيل الحساب…');
     const {data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:dashboardUrl}});
     signupBtn.disabled=false;
     if(error)return authNote(humanError(error),true);
@@ -76,7 +117,9 @@
 
   const resendBtn=document.getElementById('resendBtn');
   if(resendBtn)resendBtn.onclick=async()=>{
-    const email=(document.getElementById('activateEmail')?.value||document.getElementById('authEmail')?.value||'').trim().toLowerCase();
+    const sourceId=document.getElementById('activateEmail')?.value?'activateEmail':'authEmail';
+    const emailResult=getEmail(sourceId);
+    const email=emailResult.email;
     if(!email)return authNote('أدخل البريد الإلكتروني أولاً.',true);
     resendBtn.disabled=true;
     const {error}=await sb.auth.resend({type:'signup',email,options:{emailRedirectTo:dashboardUrl}});
