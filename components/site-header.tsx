@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { ArrowUpLeft, Languages, Menu, X } from 'lucide-react'
 import { useState } from 'react'
+import { withBasePath } from '@/lib/base-path'
 
 type Locale='ar'|'en'
 
@@ -24,7 +25,7 @@ export function SiteHeader({locale='ar'}:{locale?:Locale}) {
   return <header className="sticky top-3 z-50 pt-3" dir={ar?'rtl':'ltr'}>
     <div className="container-shell glass relative flex min-h-[72px] items-center justify-between rounded-[22px] px-3 md:px-6">
       <Link href={ar?'/':'/en'} className="flex items-center gap-3" aria-label="NEXORA AI">
-        <span className="grid h-11 w-11 place-items-center rounded-2xl border border-blue-100 bg-white shadow-card"><img src="/nexora-mark.svg" alt="NEXORA" className="h-9 w-9"/></span>
+        <span className="grid h-11 w-11 place-items-center rounded-2xl border border-blue-100 bg-white shadow-card"><img src={withBasePath('/nexora-mark.svg')} alt="NEXORA" className="h-9 w-9"/></span>
         <span className="hidden font-[var(--font-inter)] text-[15px] font-extrabold tracking-[.18em] text-slate-950 sm:inline">NEXORA <b className="text-[#0071e3]">AI</b></span>
       </Link>
 
