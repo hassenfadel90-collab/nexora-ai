@@ -3,7 +3,7 @@
 import { ReactNode, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Activity, Bot, BriefcaseBusiness, ChartNoAxesCombined, CheckSquare2, CircleDollarSign, FileText, FolderOpen, Gauge, LayoutDashboard, LogOut, Menu, Search, Settings, ShieldCheck, Sparkles, UserRoundCheck, Users, Workflow, X } from 'lucide-react'
+import { Activity, Bot, BriefcaseBusiness, ChartNoAxesCombined, CheckSquare2, CircleDollarSign, FileText, FolderOpen, Gauge, LayoutDashboard, LogOut, Menu, MessageSquareMore, Search, Settings, ShieldCheck, Sparkles, UserRoundCheck, Users, Workflow, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { NotificationsMenu } from '@/components/notifications-menu'
 
@@ -13,6 +13,7 @@ type NavItem = { label:string; href:string; icon:any; roles:Role[] }
 
 const allRoles:Role[]=['owner','admin','manager','sales','developer']
 const management:Role[]=['owner','admin','manager']
+const accessAdmins:Role[]=['owner','admin']
 
 const items:NavItem[] = [
   {label:'نظرة عامة',href:'/command',icon:LayoutDashboard,roles:allRoles},
@@ -21,7 +22,8 @@ const items:NavItem[] = [
   {label:'المشاريع',href:'/command/projects',icon:BriefcaseBusiness,roles:allRoles},
   {label:'المهام',href:'/command/tasks',icon:CheckSquare2,roles:allRoles},
   {label:'الملفات',href:'/command/files',icon:FolderOpen,roles:allRoles},
-  {label:'الفريق',href:'/command/team',icon:Users,roles:management},
+  {label:'الرسائل',href:'/command/messages',icon:MessageSquareMore,roles:allRoles},
+  {label:'الفريق',href:'/command/team',icon:Users,roles:accessAdmins},
   {label:'العروض',href:'/command/proposals',icon:FileText,roles:['owner','admin','manager','sales']},
   {label:'الفواتير',href:'/command/invoices',icon:CircleDollarSign,roles:['owner','admin','manager','sales']},
   {label:'AI Agents',href:'/command/agents',icon:Bot,roles:['owner','admin','manager','developer']},
@@ -29,7 +31,7 @@ const items:NavItem[] = [
   {label:'الموافقات',href:'/command/approvals',icon:ShieldCheck,roles:management},
   {label:'التحليلات',href:'/command/analytics',icon:ChartNoAxesCombined,roles:management},
   {label:'سجل النشاط',href:'/command/activity',icon:Activity,roles:['owner','admin','manager','developer']},
-  {label:'الإعدادات',href:'/command/settings',icon:Settings,roles:['owner','admin']},
+  {label:'الإعدادات',href:'/command/settings',icon:Settings,roles:accessAdmins},
 ]
 
 export function CommandShell({children}:{children:ReactNode}){
