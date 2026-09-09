@@ -3,7 +3,7 @@
 import { ReactNode, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Activity, Bot, BriefcaseBusiness, ChartNoAxesCombined, CheckSquare2, CircleDollarSign, FileText, Gauge, LayoutDashboard, LogOut, Menu, MessageSquareMore, Search, Settings, ShieldCheck, Sparkles, UserRoundCheck, Users, Workflow, X } from 'lucide-react'
+import { Activity, Bot, BriefcaseBusiness, ChartNoAxesCombined, CheckSquare2, CircleDollarSign, FileText, FolderOpen, Gauge, LayoutDashboard, LogOut, Menu, MessageSquareMore, Search, Settings, ShieldCheck, Sparkles, UserRoundCheck, Users, Workflow, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 type Profile = { id:string; email:string; full_name:string|null; role:string; active:boolean }
@@ -19,6 +19,7 @@ const items:NavItem[] = [
   {label:'العملاء',href:'/command/clients',icon:UserRoundCheck,roles:management},
   {label:'المشاريع',href:'/command/projects',icon:BriefcaseBusiness,roles:allRoles},
   {label:'المهام',href:'/command/tasks',icon:CheckSquare2,roles:allRoles},
+  {label:'الملفات',href:'/command/files',icon:FolderOpen,roles:allRoles},
   {label:'الفريق',href:'/command/team',icon:Users,roles:management},
   {label:'العروض',href:'/command/proposals',icon:FileText,roles:['owner','admin','manager','sales']},
   {label:'الفواتير',href:'/command/invoices',icon:CircleDollarSign,roles:['owner','admin','manager','sales']},
