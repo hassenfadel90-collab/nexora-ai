@@ -35,6 +35,6 @@
       const marker=document.createElement('div');marker.id='titaniumQaMarker';marker.hidden=true;marker.textContent=failures.length?`FAIL:${failures.join(' | ')}`:`PASS:${path}:${w}`;body.appendChild(marker);
     });
   };
-  const schedule=()=>setTimeout(finish,1800);
+  const schedule=()=>setTimeout(finish,260);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
 })();
