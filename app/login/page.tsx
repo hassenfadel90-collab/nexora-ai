@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, CheckCircle2, Eye, EyeOff, Loader2, LockKeyhole, Mail, UserPlus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { withBasePath } from '@/lib/base-path'
 
 const normalizeEmail=(value:string)=>value.trim().toLowerCase().replace('@gmai.com','@gmail.com').replace('@gmial.com','@gmail.com')
 
@@ -33,9 +34,9 @@ export default function LoginPage() {
         const access=await supabase.from('team_access').select('email,active,role').ilike('email',normalized).eq('active',true).maybeSingle()
         if(access.error)throw access.error
         if(!access.data)throw new Error('هذا البريد غير مضاف إلى فريق NEXORA. اطلب من Owner أو Admin إضافته أولاً.')
-        const {data,error}=await supabase.auth.signUp({email:normalized,password,options:{data:{full_name:fullName.trim()||null}}})
+        const {data,error}=await supabase.auth.signUp({email:normalized,password,options:{data:{full_name:fullName.trim()||null},emailRedirectTo:`${window.location.origin}${withBasePath('/login')}`}})
         if(error)throw error
-        if(data.session){window.location.href='/command';return}
+        if(data.session){window.location.href=withBasePath('/command');return}
         setSuccess('تم إنشاء الحساب. إذا كان تأكيد البريد مفعلاً، افتح رسالة Supabase في بريدك ثم ارجع وسجّل الدخول.')
         setMode('signin');setPassword('')
         return
@@ -50,7 +51,7 @@ export default function LoginPage() {
         await supabase.auth.signOut()
         throw new Error('الحساب غير مفعّل ضمن فريق NEXORA أو لا يملك صلاحية دخول.')
       }
-      window.location.href='/command'
+      window.location.href=withBasePath('/command')
     }catch(err:any){
       const raw=String(err?.message||err||'')
       if(/Invalid login credentials/i.test(raw))setMessage('البريد أو كلمة المرور غير صحيحة.')
@@ -66,7 +67,7 @@ export default function LoginPage() {
     setLoading(true);setMessage('');setSuccess('')
     try{
       const sb=createClient()
-      const {error}=await sb.auth.resetPasswordForEmail(normalized,{redirectTo:`${window.location.origin}/reset-password`})
+      const {error}=await sb.auth.resetPasswordForEmail(normalized,{redirectTo:`${window.location.origin}${withBasePath('/reset-password')}`})
       if(error)throw error
       setSuccess('تم إرسال رابط استعادة كلمة المرور إذا كان البريد مسجلاً.')
     }catch(err:any){setMessage(String(err?.message||err))}finally{setLoading(false)}
@@ -91,7 +92,7 @@ export default function LoginPage() {
         </form>
       </section>
 
-      <section className="order-1 relative min-h-[360px] overflow-hidden bg-[#07111f] p-8 text-white lg:order-2 lg:min-h-[760px] lg:p-12"><div className="absolute inset-0 opacity-25 grid-dots"/><div className="relative flex h-full flex-col justify-between"><div className="flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-white text-xl font-black text-slate-950">N</span><span className="font-[var(--font-inter)] text-sm font-black tracking-[.2em]">NEXORA AI</span></div><div className="max-w-lg"><div className="text-xs font-black tracking-[.18em] text-blue-300">NEXORA COMMAND</div><h2 className="mt-5 text-4xl font-black leading-tight md:text-6xl">Your business.<br/>Under control.</h2><p className="mt-6 max-w-md text-base leading-8 text-slate-300">Projects, CRM, clients, team, approvals, files, AI agents and automation in one secure operating system.</p></div></div></section>
+      <section className="order-1 relative min-h-[360px] overflow-hidden bg-[#07111f] p-8 text-white lg:order-2 lg:min-h-[760px] lg:p-12"><div className="absolute inset-0 opacity-25 grid-dots"/><div className="relative flex h-full flex-col justify-between"><div className="flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-white p-1 text-xl font-black text-slate-950"><img src={withBasePath('/nexora-mark.svg')} alt="NEXORA" className="h-10 w-10"/></span><span className="font-[var(--font-inter)] text-sm font-black tracking-[.2em]">NEXORA AI</span></div><div className="max-w-lg"><div className="text-xs font-black tracking-[.18em] text-blue-300">NEXORA COMMAND</div><h2 className="mt-5 text-4xl font-black leading-tight md:text-6xl">Your business.<br/>Under control.</h2><p className="mt-6 max-w-md text-base leading-8 text-slate-300">Projects, CRM, clients, team, approvals, files, AI agents and automation in one secure operating system.</p></div></div></section>
     </div>
   </main>
 }
