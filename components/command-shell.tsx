@@ -3,8 +3,9 @@
 import { ReactNode, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Activity, Bot, BriefcaseBusiness, ChartNoAxesCombined, CheckSquare2, CircleDollarSign, FileText, FolderOpen, Gauge, LayoutDashboard, LogOut, Menu, MessageSquareMore, Search, Settings, ShieldCheck, Sparkles, UserRoundCheck, Users, Workflow, X } from 'lucide-react'
+import { Activity, Bot, BriefcaseBusiness, ChartNoAxesCombined, CheckSquare2, CircleDollarSign, FileText, FolderOpen, Gauge, LayoutDashboard, LogOut, Menu, Search, Settings, ShieldCheck, Sparkles, UserRoundCheck, Users, Workflow, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { NotificationsMenu } from '@/components/notifications-menu'
 
 type Profile = { id:string; email:string; full_name:string|null; role:string; active:boolean }
 type Role = 'owner'|'admin'|'manager'|'sales'|'developer'
@@ -93,7 +94,7 @@ export function CommandShell({children}:{children:ReactNode}){
       </aside>
       {mobile&&<button aria-label="إغلاق القائمة" onClick={()=>setMobile(false)} className="fixed inset-0 z-40 bg-slate-950/20 lg:hidden"/>}
       <section className="min-w-0 flex-1">
-        <header className="sticky top-0 z-30 flex min-h-[76px] items-center gap-3 border-b border-slate-200 bg-white/90 px-4 backdrop-blur-xl md:px-6 lg:px-8"><button onClick={()=>setMobile(true)} className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 lg:hidden"><Menu size={18}/></button><div><div className="text-[10px] font-black tracking-[.16em] text-slate-400">NEXORA / COMMAND</div><h1 className="text-lg font-black">{activeTitle}</h1></div><button onClick={()=>setSearchOpen(true)} className="mr-auto hidden min-w-[340px] items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-right text-sm font-bold text-slate-400 md:flex"><Search size={17}/><span className="flex-1">ابحث في NEXORA…</span><kbd className="rounded-md border border-slate-200 bg-white px-2 py-1 text-[10px]">⌘ K</kbd></button><button onClick={()=>location.href='/command/agents'} className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white text-violet-600"><Sparkles size={18}/></button><button onClick={()=>setSearchOpen(true)} className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white"><MessageSquareMore size={18}/></button></header>
+        <header className="sticky top-0 z-30 flex min-h-[76px] items-center gap-3 border-b border-slate-200 bg-white/90 px-4 backdrop-blur-xl md:px-6 lg:px-8"><button onClick={()=>setMobile(true)} className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 lg:hidden"><Menu size={18}/></button><div><div className="text-[10px] font-black tracking-[.16em] text-slate-400">NEXORA / COMMAND</div><h1 className="text-lg font-black">{activeTitle}</h1></div><button onClick={()=>setSearchOpen(true)} className="mr-auto hidden min-w-[340px] items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-right text-sm font-bold text-slate-400 md:flex"><Search size={17}/><span className="flex-1">ابحث في NEXORA…</span><kbd className="rounded-md border border-slate-200 bg-white px-2 py-1 text-[10px]">⌘ K</kbd></button><button onClick={()=>location.href='/command/agents'} className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white text-violet-600"><Sparkles size={18}/></button><NotificationsMenu /></header>
         <div className="p-4 md:p-6 lg:p-8">{children}</div>
       </section>
     </div>
