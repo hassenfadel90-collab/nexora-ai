@@ -18,7 +18,7 @@
     .then(()=>load('./suite-88.js?v=88.4'))
     .then(()=>load('./suite-88-ultra.js?v=88.4'))
     .then(()=>load('./client-invites.js?v=88.4'))
-    .then(()=>load('./auth-ui-fix.js?v=auth-20260909-2'))
+    .then(()=>load('./auth-ui-fix.js?v=auth-20260909-3'))
     .then(()=>load('./auth-session-fix.js?v=session-20260909-1'))
     .then(()=>load('./ui-actions.js?v=actions-20260909-2'))
     .then(()=>load('../route-guard.js?v=routes-20260909-2'))
