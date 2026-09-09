@@ -6,8 +6,17 @@ const cairo = Cairo({ subsets: ['arabic', 'latin'], variable: '--font-cairo' })
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://nexora.example'),
   title: 'NEXORA AI — Software, AI & Automation',
   description: 'NEXORA builds premium software, AI systems, automation and digital platforms for modern businesses.',
+  icons: { icon: '/nexora-mark.svg' },
+  alternates: { canonical: '/', languages: { 'ar-IQ': '/', en: '/en' } },
+  openGraph: {
+    title: 'NEXORA AI — Software, AI & Automation',
+    description: 'Software, AI agents and automation built around modern business operations.',
+    type: 'website',
+    locale: 'ar_IQ',
+  },
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
