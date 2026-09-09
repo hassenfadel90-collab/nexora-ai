@@ -59,7 +59,6 @@ for p in html_files:
             if target is None: continue
             try: target.relative_to(root_abs)
             except ValueError: continue
-            # directory URLs resolve to index.html.
             if raw.split('?',1)[0].split('#',1)[0].endswith('/'):
                 target=target/'index.html'
             if not target.exists(): errors.append(f'{p}: missing local {attr} target {raw}')
@@ -85,8 +84,9 @@ for p in html_files:
             if classes & {'nav-item','lead-open','approval-action','autopilot-run','search-result','download','open','text-btn','password-eye','suite-action'}: continue
             errors.append(f'{p}: anonymous button lacks an action: <button{attrs[:120]}>')
 
-# 5) Every navigation data-page/data-go points to a page rendered in HTML or JS.
+# 5) Every navigation data-page/data-go points to a page rendered in HTML or dynamically via section().
 page_targets=set(re.findall(r'id=["\']page-([a-zA-Z0-9_-]+)["\']',joined))
+page_targets.update(re.findall(r"section\(['\"]([a-zA-Z0-9_-]+)['\"]\s*,",joined))
 nav_targets=set(re.findall(r'data-(?:page|go)=["\']([a-zA-Z0-9_-]+)["\']',joined))
 for x in sorted(nav_targets-page_targets):
     errors.append(f'navigation target has no page: {x}')
