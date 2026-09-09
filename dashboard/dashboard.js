@@ -5,7 +5,6 @@
     Object.entries(attrs).forEach(([k,v])=>l.dataset[k]=v);
     document.head.appendChild(l);
   };
-  // Load all dashboard assets relative to this directory so GitHub Pages /nexora-ai works.
   addStyle('./dashboard-laptop-fix.css?v=titanium-20260909-1');
   addStyle('./suite-88.css?v=88.3',{suite88:'1'});
   addStyle('./suite-88-ultra.css?v=88.3',{suiteUltra:'1'});
@@ -20,10 +19,11 @@
     .then(()=>load('./suite-88-ultra.js?v=88.4'))
     .then(()=>load('./client-invites.js?v=88.4'))
     .then(()=>load('./auth-ui-fix.js?v=auth-20260909-2'))
+    .then(()=>load('./auth-session-fix.js?v=session-20260909-1'))
     .then(()=>load('./ui-actions.js?v=actions-20260909-2'))
     .catch(err=>{
       console.error('NEXORA loader',err);
       const n=document.getElementById('authNote');
-      if(n)n.textContent='تعذر تحميل لوحة التحكم. أعد تحميل الصفحة. إذا استمرت المشكلة استخدم استعادة كلمة المرور.';
+      if(n)n.textContent='تعذر تحميل لوحة التحكم. أعد تحميل الصفحة.';
     });
 })();
