@@ -1,0 +1,67 @@
+name: NEXORA TITANIUM Responsive QA
+
+on:
+  push:
+    branches: [titanium-redesign, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  responsive-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: JavaScript syntax and Titanium static contract
+        run: |
+          set -euo pipefail
+          find . -path './.git' -prune -o -name '*.js' -print0 | xargs -0 -n1 node --check
+          python3 qa-titanium.py .
+
+      - name: Prepare browser QA site
+        run: |
+          set -euo pipefail
+          rm -rf qa-site
+          mkdir qa-site
+          rsync -a --exclude='.git' --exclude='.github' --exclude='qa-site' ./ qa-site/
+          python3 - <<'PY'
+          from pathlib import Path
+          for rel in ['index.html','dashboard/index.html','portal/index.html']:
+              p=Path('qa-site')/rel
+              t=p.read_text(encoding='utf-8')
+              src='../qa-browser-probe.js' if '/' in rel else 'qa-browser-probe.js'
+              t=t.replace('</body>',f'<script src="{src}"></script></body>')
+              p.write_text(t,encoding='utf-8')
+          PY
+
+      - name: Chromium viewport gate
+        run: |
+          set -euo pipefail
+          BROWSER="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          if [ -z "$BROWSER" ]; then echo 'Chromium/Chrome not available on runner'; exit 1; fi
+          python3 -m http.server 8000 --directory qa-site >/tmp/nexora-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID || true' EXIT
+          sleep 1
+          widths=(320 375 390 430 768 1024 1280 1440 1920)
+          pages=("" "dashboard/" "portal/")
+          for page in "${pages[@]}"; do
+            for w in "${widths[@]}"; do
+              out="/tmp/ti-${page//\//-}${w}.html"
+              "$BROWSER" --headless=new --no-sandbox --disable-gpu --hide-scrollbars --window-size="${w},1200" --virtual-time-budget=5200 --dump-dom "http://127.0.0.1:8000/${page}" > "$out" 2>/tmp/chrome.err || { cat /tmp/chrome.err; exit 1; }
+              if ! grep -q 'data-titanium-qa="ok"' "$out"; then
+                echo "Responsive QA failed: /${page} at ${w}px"
+                grep -o 'data-titanium-qa-failures="[^"]*"' "$out" || true
+                grep -o 'id="titaniumQaMarker"[^>]*>[^<]*' "$out" || true
+                exit 1
+              fi
+              echo "PASS /${page:-public} @ ${w}px"
+            done
+          done
+
+      - name: QA summary
+        run: echo 'NEXORA TITANIUM responsive QA passed on public site, dashboard shell and client portal at 320/375/390/430/768/1024/1280/1440/1920.'
