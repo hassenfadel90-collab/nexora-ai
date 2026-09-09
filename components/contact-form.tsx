@@ -20,7 +20,7 @@ export function ContactForm({locale='ar'}:{locale?:Locale}){
     setBusy(true);setError('');setDone(false)
     try{
       const sb=createClient()
-      const {data,error:invokeError}=await sb.functions.invoke('public-lead-intake',{body:{
+      const {data,error:invokeError}=await sb.functions.invoke('public-lead-intake-v2',{body:{
         name:String(fd.get('name')||''),
         business:String(fd.get('business')||''),
         country:String(fd.get('country')||''),
