@@ -26,24 +26,91 @@ jobs:
 
       - name: Prepare static site
         run: |
+          set -euo pipefail
           mkdir -p _site/dashboard _site/portal _site/assets
-          cp index.html styles.css script.js base-styles.css base-script.js premium-home.css premium-home.js apple-ultra.css responsive-fix.css ultra-home.css ultra-qa.css manifest.webmanifest service-worker.js robots.txt sitemap.xml _site/
+          cp index.html styles.css script.js base-styles.css base-script.js premium-home.css premium-home.js apple-ultra.css responsive-fix.css laptop-fix.css ultra-home.css ultra-qa.css manifest.webmanifest service-worker.js robots.txt sitemap.xml _site/
           cp -r assets/. _site/assets/
-          cp dashboard/index.html dashboard/dashboard.css dashboard/dashboard.js dashboard/dashboard-base.js dashboard/dashboard-core.js dashboard/suite-88.css dashboard/suite-88.js dashboard/suite-88-ultra.css dashboard/suite-88-ultra.js dashboard/client-invites.js _site/dashboard/
+          cp dashboard/index.html dashboard/dashboard.css dashboard/dashboard-laptop-fix.css dashboard/dashboard.js dashboard/dashboard-base.js dashboard/dashboard-core.js dashboard/suite-88.css dashboard/suite-88.js dashboard/suite-88-ultra.css dashboard/suite-88-ultra.js dashboard/client-invites.js _site/dashboard/
           cp portal/index.html portal/portal.css portal/portal.js portal/portal-activation.js _site/portal/
           touch _site/.nojekyll
 
-          # GitHub Pages serves this repository under /nexora-ai/.
-          sed -i 's#href="/portal/#href="/nexora-ai/portal/#g; s#href="/dashboard/#href="/nexora-ai/dashboard/#g; s#href="/"#href="/nexora-ai/"#g; s#src="/assets/#src="/nexora-ai/assets/#g' _site/index.html _site/dashboard/index.html _site/portal/index.html
-          sed -i 's#href="styles.css"#href="styles.css?v=ghp-20260908-3"#g; s#src="script.js"#src="script.js?v=ghp-20260908-3"#g' _site/index.html
-          sed -i "s#url('/#url('/nexora-ai/#g" _site/styles.css
-          sed -i "s#load('/base-script.js#load('/nexora-ai/base-script.js#g; s#load('/premium-home.js#load('/nexora-ai/premium-home.js#g" _site/script.js
-          sed -i "s#href=\"/dashboard/#href=\"/nexora-ai/dashboard/#g; s#href=\"/portal/#href=\"/nexora-ai/portal/#g; s#l.href='/manifest.webmanifest#l.href='/nexora-ai/manifest.webmanifest#g; s#register('/service-worker.js#register('/nexora-ai/service-worker.js#g" _site/base-script.js
-          sed -i "s#href=\"/portal/#href=\"/nexora-ai/portal/#g; s#href=\"/dashboard/#href=\"/nexora-ai/dashboard/#g" _site/premium-home.js
-          sed -i "s#'/dashboard/#'/nexora-ai/dashboard/#g" _site/dashboard/dashboard.js _site/dashboard/suite-88.js _site/dashboard/suite-88-ultra.js
-          sed -i "s#location.origin+'/dashboard/#location.origin+'/nexora-ai/dashboard/#g" _site/dashboard/dashboard-base.js
-          sed -i "s#href=\"/dashboard/#href=\"/nexora-ai/dashboard/#g; s#href=\"/portal/#href=\"/nexora-ai/portal/#g; s#href=\"/\"#href=\"/nexora-ai/\"#g" _site/dashboard/index.html _site/portal/index.html
-          sed -i "s#const SHELL=\['/','/styles.css','/script.js','/dashboard/','/portal/'\]#const SHELL=['/nexora-ai/','/nexora-ai/styles.css','/nexora-ai/script.js','/nexora-ai/dashboard/','/nexora-ai/portal/']#; s#caches.match('/')#caches.match('/nexora-ai/')#g" _site/service-worker.js
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          BASE = '/nexora-ai'
+          root = Path('_site')
+
+          # Load laptop hardening last so it wins the cascade.
+          home = root / 'index.html'
+          text = home.read_text(encoding='utf-8')
+          if 'laptop-fix.css' not in text:
+              text = text.replace('</head>', '  <link rel="stylesheet" href="laptop-fix.css?v=ghp-20260909-1" />\n</head>')
+          text = text.replace('href="styles.css"', 'href="styles.css?v=ghp-20260909-1"')
+          text = text.replace('src="script.js"', 'src="script.js?v=ghp-20260909-1"')
+          home.write_text(text, encoding='utf-8')
+
+          dash = root / 'dashboard' / 'index.html'
+          text = dash.read_text(encoding='utf-8')
+          if 'dashboard-laptop-fix.css' not in text:
+              text = text.replace('</head>', '  <link rel="stylesheet" href="dashboard-laptop-fix.css?v=ghp-20260909-1" />\n</head>')
+          dash.write_text(text, encoding='utf-8')
+
+          local_roots = [
+              'dashboard/', 'portal/', 'assets/', 'manifest.webmanifest',
+              'service-worker.js', 'base-script.js', 'premium-home.js',
+              'styles.css', 'script.js', 'apple-ultra.css', 'responsive-fix.css',
+              'laptop-fix.css', 'ultra-home.css', 'ultra-qa.css'
+          ]
+
+          for p in root.rglob('*'):
+              if not p.is_file() or p.suffix.lower() not in {'.html', '.js', '.css', '.webmanifest'}:
+                  continue
+              t = p.read_text(encoding='utf-8')
+
+              # Root navigation links need the repository base path on GitHub Pages.
+              t = t.replace('href="/"', f'href="{BASE}/"')
+              t = t.replace("href='/'", f"href='{BASE}/'")
+
+              # Rewrite only quoted root-local URLs, avoiding external https:// URLs.
+              for item in local_roots:
+                  t = t.replace(f'"/{item}', f'"{BASE}/{item}')
+                  t = t.replace(f"'/{item}", f"'{BASE}/{item}")
+
+              # Avoid accidental double-prefixing if a source was already Pages-aware.
+              t = t.replace(f'{BASE}{BASE}/', f'{BASE}/')
+              p.write_text(t, encoding='utf-8')
+
+          # Service worker shell must remain inside the project scope.
+          sw = root / 'service-worker.js'
+          t = sw.read_text(encoding='utf-8')
+          t = t.replace("const CACHE='nexora-shell-v1'", "const CACHE='nexora-shell-ghp-v4'")
+          sw.write_text(t, encoding='utf-8')
+
+          # Hard fail instead of publishing broken dashboard/client routes.
+          required = [
+              root / 'index.html',
+              root / 'dashboard' / 'index.html',
+              root / 'portal' / 'index.html',
+              root / 'laptop-fix.css',
+              root / 'dashboard' / 'dashboard-laptop-fix.css',
+          ]
+          missing = [str(p) for p in required if not p.exists()]
+          if missing:
+              raise SystemExit('Missing release files: ' + ', '.join(missing))
+
+          bad = []
+          bad_re = re.compile(r'(["\'])/(dashboard|portal)/')
+          for p in root.rglob('*'):
+              if p.is_file() and p.suffix.lower() in {'.html', '.js'}:
+                  t = p.read_text(encoding='utf-8')
+                  if bad_re.search(t):
+                      bad.append(str(p))
+          if bad:
+              raise SystemExit('Unscoped GitHub Pages routes remain in: ' + ', '.join(bad))
+
+          print('GitHub Pages route + laptop QA passed')
+          PY
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
