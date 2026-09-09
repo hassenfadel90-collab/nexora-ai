@@ -3,7 +3,7 @@
 import { ReactNode, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Activity, Bot, BriefcaseBusiness, ChartNoAxesCombined, CheckSquare2, CircleDollarSign, FileText, Gauge, LayoutDashboard, LogOut, Menu, MessageSquareMore, Search, Settings, ShieldCheck, Sparkles, Users, Workflow, X } from 'lucide-react'
+import { Activity, Bot, BriefcaseBusiness, ChartNoAxesCombined, CheckSquare2, CircleDollarSign, FileText, Gauge, LayoutDashboard, LogOut, Menu, MessageSquareMore, Search, Settings, ShieldCheck, Sparkles, UserRoundCheck, Users, Workflow, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 type Profile = { id:string; email:string; full_name:string|null; role:string; active:boolean }
@@ -16,6 +16,7 @@ const management:Role[]=['owner','admin','manager']
 const items:NavItem[] = [
   {label:'نظرة عامة',href:'/command',icon:LayoutDashboard,roles:allRoles},
   {label:'CRM / Leads',href:'/command/leads',icon:Gauge,roles:['owner','admin','manager','sales']},
+  {label:'العملاء',href:'/command/clients',icon:UserRoundCheck,roles:management},
   {label:'المشاريع',href:'/command/projects',icon:BriefcaseBusiness,roles:allRoles},
   {label:'المهام',href:'/command/tasks',icon:CheckSquare2,roles:allRoles},
   {label:'الفريق',href:'/command/team',icon:Users,roles:management},
