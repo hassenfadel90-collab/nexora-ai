@@ -1,4 +1,4 @@
-name: Deploy NEXORA to GitHub Pages
+name: Deploy NEXORA V2 to GitHub Pages
 
 on:
   push:
@@ -20,103 +20,54 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    env:
+      GITHUB_PAGES: 'true'
+      NEXT_PUBLIC_BASE_PATH: '/nexora-ai'
+      NEXT_PUBLIC_SITE_ORIGIN: 'https://hassenfadel90-collab.github.io'
+      NEXT_PUBLIC_SUPABASE_URL: 'https://tkcfrjxyvnguvvbnqpxj.supabase.co'
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'sb_publishable_946_5GgY_4_JOTarypoMlw_nA_YuVXe'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare static site
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Build NEXORA V2 static export
+        run: npm run build
+
+      - name: Release smoke check
         run: |
           set -euo pipefail
-          mkdir -p _site/dashboard _site/portal _site/assets _site/security _site/status _site/insights
-          cp index.html styles.css titanium-home.css script.js route-guard.js base-styles.css base-script.js responsive-fix.css laptop-fix.css layout-final.css manifest.webmanifest service-worker.js robots.txt sitemap.xml _site/
-          cp -r assets/. _site/assets/
-          cp dashboard/index.html dashboard/dashboard.css dashboard/dashboard-laptop-fix.css dashboard/titanium-dashboard.css dashboard/dashboard.js dashboard/dashboard-base.js dashboard/dashboard-core.js dashboard/suite-88.css dashboard/suite-88.js dashboard/suite-88-ultra.css dashboard/suite-88-ultra.js dashboard/client-invites.js dashboard/auth-ui-fix.js dashboard/auth-session-fix.js dashboard/ui-actions.js _site/dashboard/
-          cp portal/index.html portal/portal.css portal/titanium-portal.css portal/portal.js portal/portal-activation.js portal/portal-auth-fix.js _site/portal/
-          cp security/index.html _site/security/index.html
-          cp status/index.html _site/status/index.html
-          cp insights/index.html _site/insights/index.html
-          touch _site/.nojekyll
-
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-
-          BASE = '/nexora-ai'
-          OFFICIAL = 'https://hassenfadel90-collab.github.io/nexora-ai/'
-          root = Path('_site')
-
-          home = root / 'index.html'
-          text = home.read_text(encoding='utf-8')
-          if 'laptop-fix.css' not in text:
-              text = text.replace('</head>', '  <link rel="stylesheet" href="laptop-fix.css?v=ghp-20260909-7" />\n</head>')
-          if 'layout-final.css' not in text:
-              text = text.replace('</head>', '  <link rel="stylesheet" href="layout-final.css?v=ghp-20260909-7" />\n</head>')
-          text = text.replace('href="styles.css"', 'href="styles.css?v=titanium-20260909-2"')
-          text = text.replace('src="script.js"', 'src="script.js?v=titanium-20260909-2"')
-          text = text.replace('assets/dashboard-showcase.jpg', 'assets/nexora-platform.svg')
-          text = text.replace('https://nexora-ai-iraq.netlify.app/', OFFICIAL)
-          text = text.replace('<meta name="theme-color" content="#070a11" />','<meta name="theme-color" content="#f5f5f7" />')
-          home.write_text(text, encoding='utf-8')
-
-          dash = root / 'dashboard' / 'index.html'
-          text = dash.read_text(encoding='utf-8')
-          if 'dashboard-laptop-fix.css' not in text:
-              text = text.replace('</head>', '  <link rel="stylesheet" href="dashboard-laptop-fix.css?v=ghp-20260909-7" />\n</head>')
-          dash.write_text(text, encoding='utf-8')
-
-          local_roots = [
-              'dashboard/', 'portal/', 'security/', 'status/', 'insights/', 'assets/', 'manifest.webmanifest',
-              'service-worker.js', 'base-script.js', 'route-guard.js', 'styles.css', 'titanium-home.css',
-              'script.js', 'responsive-fix.css', 'laptop-fix.css', 'layout-final.css'
-          ]
-
-          for p in root.rglob('*'):
-              if not p.is_file() or p.suffix.lower() not in {'.html', '.js', '.css', '.webmanifest'}:
-                  continue
-              t = p.read_text(encoding='utf-8')
-              t = t.replace('href="/#', f'href="{BASE}/#')
-              t = t.replace("href='/#", f"href='{BASE}/#")
-              t = t.replace('href="/"', f'href="{BASE}/"')
-              t = t.replace("href='/'", f"href='{BASE}/'")
-              for item in local_roots:
-                  t = t.replace(f'"/{item}', f'"{BASE}/{item}')
-                  t = t.replace(f"'/{item}", f"'{BASE}/{item}")
-              t = t.replace(f'{BASE}{BASE}/', f'{BASE}/')
-              p.write_text(t, encoding='utf-8')
-
-          sw = root / 'service-worker.js'
-          t = sw.read_text(encoding='utf-8')
-          t = t.replace("const CACHE='nexora-shell-v1'", "const CACHE='nexora-shell-ghp-v10'")
-          sw.write_text(t, encoding='utf-8')
-
-          required = [
-              root / 'index.html', root / 'titanium-home.css', root / 'assets' / 'nexora-mark.svg',
-              root / 'assets' / 'nexora-platform.svg', root / 'assets' / 'service-web.svg',
-              root / 'assets' / 'service-systems.svg', root / 'assets' / 'service-ai.svg', root / 'assets' / 'service-automation.svg',
-              root / 'dashboard' / 'index.html', root / 'dashboard' / 'titanium-dashboard.css', root / 'dashboard' / 'auth-session-fix.js',
-              root / 'portal' / 'index.html', root / 'portal' / 'titanium-portal.css',
-              root / 'security' / 'index.html', root / 'status' / 'index.html', root / 'insights' / 'index.html',
-              root / 'laptop-fix.css', root / 'layout-final.css', root / 'dashboard' / 'dashboard-laptop-fix.css',
-              root / 'dashboard' / 'auth-ui-fix.js', root / 'dashboard' / 'ui-actions.js',
-              root / 'portal' / 'portal-auth-fix.js'
-          ]
-          missing = [str(p) for p in required if not p.exists()]
-          if missing:
-              raise SystemExit('Missing release files: ' + ', '.join(missing))
-
-          bad = []
-          bad_re = re.compile(r'(["\'])/(dashboard|portal|security|status|insights)/')
-          for p in root.rglob('*'):
-              if p.is_file() and p.suffix.lower() in {'.html', '.js'}:
-                  t = p.read_text(encoding='utf-8')
-                  if bad_re.search(t): bad.append(str(p))
-          if bad:
-              raise SystemExit('Unscoped GitHub Pages routes remain in: ' + ', '.join(bad))
-
-          print('GitHub Pages Titanium-only + assets + route QA passed')
-          PY
-
-          python3 qa-interactions.py _site
+          test -f out/index.html
+          test -f out/en/index.html
+          test -f out/login/index.html
+          test -f out/command/index.html
+          test -f out/command/leads/index.html
+          test -f out/command/projects/index.html
+          test -f out/command/tasks/index.html
+          test -f out/command/team/index.html
+          test -f out/command/clients/index.html
+          test -f out/command/files/index.html
+          test -f out/command/messages/index.html
+          test -f out/portal/index.html
+          test -f out/portal/login/index.html
+          test -f out/portal/activate/index.html
+          test -f out/portal/messages/index.html
+          test -f out/reset-password/index.html
+          test -f out/nexora-mark.svg
+          test -f out/service-worker.js
+          touch out/.nojekyll
+          echo 'NEXORA V2 release files verified.'
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
@@ -126,7 +77,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: out
 
       - name: Deploy Pages
         id: deployment
