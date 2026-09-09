@@ -27,11 +27,14 @@ jobs:
       - name: Prepare static site
         run: |
           set -euo pipefail
-          mkdir -p _site/dashboard _site/portal _site/assets
+          mkdir -p _site/dashboard _site/portal _site/assets _site/security _site/status _site/insights
           cp index.html styles.css script.js route-guard.js base-styles.css base-script.js premium-home.css premium-home.js apple-ultra.css responsive-fix.css laptop-fix.css layout-final.css ultra-home.css ultra-qa.css manifest.webmanifest service-worker.js robots.txt sitemap.xml _site/
           cp -r assets/. _site/assets/
           cp dashboard/index.html dashboard/dashboard.css dashboard/dashboard-laptop-fix.css dashboard/dashboard.js dashboard/dashboard-base.js dashboard/dashboard-core.js dashboard/suite-88.css dashboard/suite-88.js dashboard/suite-88-ultra.css dashboard/suite-88-ultra.js dashboard/client-invites.js dashboard/auth-ui-fix.js dashboard/ui-actions.js _site/dashboard/
           cp portal/index.html portal/portal.css portal/portal.js portal/portal-activation.js portal/portal-auth-fix.js _site/portal/
+          cp security/index.html _site/security/index.html
+          cp status/index.html _site/status/index.html
+          cp insights/index.html _site/insights/index.html
           touch _site/.nojekyll
 
           python3 - <<'PY'
@@ -44,21 +47,21 @@ jobs:
           home = root / 'index.html'
           text = home.read_text(encoding='utf-8')
           if 'laptop-fix.css' not in text:
-              text = text.replace('</head>', '  <link rel="stylesheet" href="laptop-fix.css?v=ghp-20260909-3" />\n</head>')
+              text = text.replace('</head>', '  <link rel="stylesheet" href="laptop-fix.css?v=ghp-20260909-4" />\n</head>')
           if 'layout-final.css' not in text:
-              text = text.replace('</head>', '  <link rel="stylesheet" href="layout-final.css?v=ghp-20260909-3" />\n</head>')
-          text = text.replace('href="styles.css"', 'href="styles.css?v=ghp-20260909-3"')
-          text = text.replace('src="script.js"', 'src="script.js?v=ghp-20260909-3"')
+              text = text.replace('</head>', '  <link rel="stylesheet" href="layout-final.css?v=ghp-20260909-4" />\n</head>')
+          text = text.replace('href="styles.css"', 'href="styles.css?v=ghp-20260909-4"')
+          text = text.replace('src="script.js"', 'src="script.js?v=ghp-20260909-4"')
           home.write_text(text, encoding='utf-8')
 
           dash = root / 'dashboard' / 'index.html'
           text = dash.read_text(encoding='utf-8')
           if 'dashboard-laptop-fix.css' not in text:
-              text = text.replace('</head>', '  <link rel="stylesheet" href="dashboard-laptop-fix.css?v=ghp-20260909-3" />\n</head>')
+              text = text.replace('</head>', '  <link rel="stylesheet" href="dashboard-laptop-fix.css?v=ghp-20260909-4" />\n</head>')
           dash.write_text(text, encoding='utf-8')
 
           local_roots = [
-              'dashboard/', 'portal/', 'assets/', 'manifest.webmanifest',
+              'dashboard/', 'portal/', 'security/', 'status/', 'insights/', 'assets/', 'manifest.webmanifest',
               'service-worker.js', 'base-script.js', 'premium-home.js', 'route-guard.js',
               'styles.css', 'script.js', 'apple-ultra.css', 'responsive-fix.css',
               'laptop-fix.css', 'layout-final.css', 'ultra-home.css', 'ultra-qa.css'
@@ -68,6 +71,8 @@ jobs:
               if not p.is_file() or p.suffix.lower() not in {'.html', '.js', '.css', '.webmanifest'}:
                   continue
               t = p.read_text(encoding='utf-8')
+              t = t.replace('href="/#', f'href="{BASE}/#')
+              t = t.replace("href='/#", f"href='{BASE}/#")
               t = t.replace('href="/"', f'href="{BASE}/"')
               t = t.replace("href='/'", f"href='{BASE}/'")
               for item in local_roots:
@@ -78,11 +83,12 @@ jobs:
 
           sw = root / 'service-worker.js'
           t = sw.read_text(encoding='utf-8')
-          t = t.replace("const CACHE='nexora-shell-v1'", "const CACHE='nexora-shell-ghp-v6'")
+          t = t.replace("const CACHE='nexora-shell-v1'", "const CACHE='nexora-shell-ghp-v7'")
           sw.write_text(t, encoding='utf-8')
 
           required = [
               root / 'index.html', root / 'dashboard' / 'index.html', root / 'portal' / 'index.html',
+              root / 'security' / 'index.html', root / 'status' / 'index.html', root / 'insights' / 'index.html',
               root / 'laptop-fix.css', root / 'layout-final.css', root / 'dashboard' / 'dashboard-laptop-fix.css',
               root / 'dashboard' / 'auth-ui-fix.js', root / 'dashboard' / 'ui-actions.js',
               root / 'portal' / 'portal-auth-fix.js'
@@ -92,7 +98,7 @@ jobs:
               raise SystemExit('Missing release files: ' + ', '.join(missing))
 
           bad = []
-          bad_re = re.compile(r'(["\'])/(dashboard|portal)/')
+          bad_re = re.compile(r'(["\'])/(dashboard|portal|security|status|insights)/')
           for p in root.rglob('*'):
               if p.is_file() and p.suffix.lower() in {'.html', '.js'}:
                   t = p.read_text(encoding='utf-8')
