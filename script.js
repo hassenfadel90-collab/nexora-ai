@@ -2,6 +2,14 @@
   const isGitHubPages=location.hostname.endsWith('github.io');
   const base=isGitHubPages?'/nexora-ai':'';
   const appPath=(p)=>`${base}${p}`;
+  try{if(!localStorage.getItem('nexora-theme')){document.documentElement.dataset.theme='light';localStorage.setItem('nexora-theme','light')}}catch(e){}
+
+  if(isGitHubPages){
+    const official=`${location.origin}${base}/`;
+    const canonical=document.querySelector('link[rel="canonical"]');if(canonical)canonical.href=official;
+    const og=document.querySelector('meta[property="og:url"]');if(og)og.content=official;
+    const theme=document.querySelector('meta[name="theme-color"]');if(theme)theme.content='#f5f5f7';
+  }
 
   const polishShowcase=()=>{
     const cards=document.querySelectorAll('.showcase-card');
@@ -38,5 +46,5 @@
   if(isGitHubPages&&'serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});if('caches' in window)caches.keys().then(keys=>keys.filter(k=>/nexora/i.test(k)).forEach(k=>caches.delete(k))).catch(()=>{});}
 
   const load=(src)=>new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.async=false;s.onload=()=>{normalizeRoutes();resolve()};s.onerror=()=>reject(new Error('Failed to load '+src));document.head.appendChild(s)});
-  load('./base-script.js?v=routefix-20260909-3').then(()=>load('./premium-home.js?v=routefix-20260909-3')).then(()=>load('./route-guard.js?v=routefix-20260909-3')).then(()=>normalizeRoutes()).catch(err=>console.error('NEXORA premium loader',err));
+  load('./base-script.js?v=titanium-20260909-1').then(()=>load('./premium-home.js?v=titanium-20260909-1')).then(()=>load('./route-guard.js?v=routes-20260909-2')).then(()=>normalizeRoutes()).catch(err=>console.error('NEXORA premium loader',err));
 })();
