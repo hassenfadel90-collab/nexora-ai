@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from 'react'
 import { ArrowUpLeft, CheckCircle2, Loader2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 type Locale='ar'|'en'
 
@@ -18,11 +19,25 @@ export function ContactForm({locale='ar'}:{locale?:Locale}){
     if(honeypot)return
     setBusy(true);setError('');setDone(false)
     try{
-      const response=await fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:String(fd.get('name')||''),business:String(fd.get('business')||''),country:String(fd.get('country')||''),contact:String(fd.get('contact')||''),service:String(fd.get('service')||''),message:String(fd.get('message')||''),company_website:honeypot})})
-      const data=await response.json().catch(()=>({}))
-      if(!response.ok||!data?.ok){if(response.status===429)throw new Error(ar?'محاولات كثيرة. حاول مرة أخرى بعد دقائق.':'Too many attempts. Please try again in a few minutes.');throw new Error(data?.error||(ar?'تعذر إرسال الطلب.':'Unable to submit your request.'))}
+      const sb=createClient()
+      const {data,error:invokeError}=await sb.functions.invoke('public-lead-intake',{body:{
+        name:String(fd.get('name')||''),
+        business:String(fd.get('business')||''),
+        country:String(fd.get('country')||''),
+        contact:String(fd.get('contact')||''),
+        service:String(fd.get('service')||''),
+        message:String(fd.get('message')||''),
+        company_website:honeypot,
+      }})
+      if(invokeError)throw invokeError
+      if(!data?.ok)throw new Error(data?.error||(ar?'تعذر إرسال الطلب.':'Unable to submit your request.'))
       form.reset();setDone(true)
-    }catch(err:any){console.error(err);setError(String(err?.message||(ar?'تعذر إرسال الطلب حالياً. تأكد من البيانات وحاول مرة ثانية.':'Unable to submit your request right now. Please check your details and try again.')))}finally{setBusy(false)}
+    }catch(err:any){
+      console.error(err)
+      const raw=String(err?.message||'')
+      const rate=/429|too many/i.test(raw)
+      setError(rate?(ar?'محاولات كثيرة. حاول مرة أخرى بعد دقائق.':'Too many attempts. Please try again in a few minutes.'):(raw||(ar?'تعذر إرسال الطلب حالياً. تأكد من البيانات وحاول مرة ثانية.':'Unable to submit your request right now. Please check your details and try again.')))
+    }finally{setBusy(false)}
   }
 
   return <form dir={ar?'rtl':'ltr'} onSubmit={submit} className="rounded-[30px] border border-white/10 bg-white/[.06] p-5 backdrop-blur md:p-6">
