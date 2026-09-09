@@ -16,6 +16,12 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_PAGES: 'true'
+      NEXT_PUBLIC_BASE_PATH: '/nexora-ai'
+      NEXT_PUBLIC_SITE_ORIGIN: 'https://hassenfadel90-collab.github.io'
+      NEXT_PUBLIC_SUPABASE_URL: 'https://tkcfrjxyvnguvvbnqpxj.supabase.co'
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'sb_publishable_946_5GgY_4_JOTarypoMlw_nA_YuVXe'
     steps:
       - name: Checkout V2
         uses: actions/checkout@v4
@@ -23,9 +29,32 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: TypeScript check
         run: npx tsc --noEmit
-      - name: Next.js production build
+      - name: GitHub Pages route guard
+        run: |
+          set -euo pipefail
+          bad=$(grep -RInE "window\.location\.replace\(['\"]/|location\.href=['\"]/|src=['\"]/nexora-mark\.svg|window\.location\.origin[[:space:]]*\+[[:space:]]*['\"]/" app components lib --include='*.tsx' --include='*.ts' || true)
+          if [ -n "$bad" ]; then
+            echo "$bad"
+            echo 'Unscoped absolute browser route found.'
+            exit 1
+          fi
+      - name: Next.js static production build
         run: npm run build
+      - name: Static export smoke check
+        run: |
+          set -euo pipefail
+          test -f out/index.html
+          test -f out/en/index.html
+          test -f out/login/index.html
+          test -f out/command/index.html
+          test -f out/portal/index.html
+          test -f out/portal/login/index.html
+          test -f out/portal/activate/index.html
+          test -f out/nexora-mark.svg
+          touch out/.nojekyll
+          echo 'NEXORA V2 GitHub Pages export QA passed.'
