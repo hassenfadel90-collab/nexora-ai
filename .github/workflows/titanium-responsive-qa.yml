@@ -22,7 +22,7 @@ jobs:
           find . -path './.git' -prune -o -name '*.js' -print0 | xargs -0 -n1 node --check
           python3 qa-titanium.py .
 
-      - name: Prepare browser QA site
+      - name: Prepare deterministic browser QA site
         run: |
           set -euo pipefail
           rm -rf qa-site
@@ -30,11 +30,25 @@ jobs:
           rsync -a --exclude='.git' --exclude='.github' --exclude='qa-site' ./ qa-site/
           python3 - <<'PY'
           from pathlib import Path
-          for rel in ['index.html','dashboard/index.html','portal/index.html']:
+          configs={
+            'index.html':(
+              '<link rel="stylesheet" href="titanium.css?v=qa">',
+              '<script src="titanium.js?v=qa"></script><script src="qa-browser-probe.js?v=qa"></script>'
+            ),
+            'dashboard/index.html':(
+              '<link rel="stylesheet" href="titanium-dashboard.css?v=qa">',
+              '<script src="titanium-dashboard.js?v=qa"></script><script src="../qa-browser-probe.js?v=qa"></script>'
+            ),
+            'portal/index.html':(
+              '<link rel="stylesheet" href="titanium-portal.css?v=qa">',
+              '<script src="titanium-portal.js?v=qa"></script><script src="../qa-browser-probe.js?v=qa"></script>'
+            )
+          }
+          for rel,(style,scripts) in configs.items():
               p=Path('qa-site')/rel
               t=p.read_text(encoding='utf-8')
-              src='../qa-browser-probe.js' if '/' in rel else 'qa-browser-probe.js'
-              t=t.replace('</body>',f'<script src="{src}"></script></body>')
+              t=t.replace('</head>',style+'</head>')
+              t=t.replace('</body>',scripts+'</body>')
               p.write_text(t,encoding='utf-8')
           PY
 
@@ -53,16 +67,17 @@ jobs:
             for w in "${widths[@]}"; do
               out="/tmp/ti-${page//\//-}${w}.html"
               : > /tmp/chrome.err
-              timeout 18s "$BROWSER" \
+              timeout 15s "$BROWSER" \
                 --headless=new --no-sandbox --disable-gpu --hide-scrollbars \
                 --disable-background-networking --disable-component-update --disable-sync \
                 --metrics-recording-only --no-first-run \
-                --window-size="${w},1200" --virtual-time-budget=3200 \
+                --window-size="${w},1200" --virtual-time-budget=1200 \
                 --dump-dom "http://127.0.0.1:8000/${page}" > "$out" 2>/tmp/chrome.err || {
                   echo "Chromium failed or timed out: /${page} at ${w}px"; cat /tmp/chrome.err; exit 1;
                 }
               if ! grep -q 'data-titanium-qa="ok"' "$out"; then
                 echo "Responsive QA failed: /${page} at ${w}px"
+                grep -o '<body[^>]*>' "$out" | tail -1 || true
                 grep -o 'data-titanium-qa-failures="[^"]*"' "$out" || true
                 grep -o 'id="titaniumQaMarker"[^>]*>[^<]*' "$out" || true
                 exit 1
