@@ -11,7 +11,7 @@ permissions:
 jobs:
   responsive-qa:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -52,7 +52,15 @@ jobs:
           for page in "${pages[@]}"; do
             for w in "${widths[@]}"; do
               out="/tmp/ti-${page//\//-}${w}.html"
-              "$BROWSER" --headless=new --no-sandbox --disable-gpu --hide-scrollbars --window-size="${w},1200" --virtual-time-budget=5200 --dump-dom "http://127.0.0.1:8000/${page}" > "$out" 2>/tmp/chrome.err || { cat /tmp/chrome.err; exit 1; }
+              : > /tmp/chrome.err
+              timeout 18s "$BROWSER" \
+                --headless=new --no-sandbox --disable-gpu --hide-scrollbars \
+                --disable-background-networking --disable-component-update --disable-sync \
+                --metrics-recording-only --no-first-run \
+                --window-size="${w},1200" --virtual-time-budget=3200 \
+                --dump-dom "http://127.0.0.1:8000/${page}" > "$out" 2>/tmp/chrome.err || {
+                  echo "Chromium failed or timed out: /${page} at ${w}px"; cat /tmp/chrome.err; exit 1;
+                }
               if ! grep -q 'data-titanium-qa="ok"' "$out"; then
                 echo "Responsive QA failed: /${page} at ${w}px"
                 grep -o 'data-titanium-qa-failures="[^"]*"' "$out" || true
