@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft, ArrowUpLeft, Bot, Boxes, ChartNoAxesCombined, CheckCircle2, Cpu, Gauge, Layers3, MessageSquareMore, ShieldCheck, Sparkles, Workflow } from 'lucide-react'
 import { SiteHeader } from '@/components/site-header'
+import { ContactForm } from '@/components/contact-form'
 
 const services = [
   { icon: Boxes, title: 'أنظمة أعمال مخصصة', text: 'نحوّل سير العمل إلى نظام واضح: CRM، مشاريع، موظفين، ملفات، تقارير وصلاحيات.' },
@@ -94,8 +95,11 @@ export default function HomePage() {
       </section>
 
       <section id="contact" className="container-shell pb-28 pt-20">
-        <div className="rounded-[36px] bg-[#07111f] p-8 text-white shadow-soft md:p-14 lg:p-16">
-          <div className="grid gap-10 lg:grid-cols-[1fr_auto] lg:items-end"><div><div className="text-xs font-black tracking-[.18em] text-blue-300">READY TO BUILD?</div><h2 className="mt-5 max-w-4xl text-[clamp(40px,5vw,76px)] font-black leading-[1.03] tracking-[-.04em]">جاهز نبني الشيء القادم؟</h2><p className="mt-5 max-w-2xl text-lg leading-9 text-slate-300">قل لنا شنو تريد تبني، تأتمت أو تطور. نرتب الفكرة ونحوّلها إلى نظام واضح.</p></div><a href="mailto:hello@nexora.ai" className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-white px-6 font-black text-slate-950">ابدأ الآن <ArrowUpLeft size={18}/></a></div>
+        <div className="rounded-[36px] bg-[#07111f] p-6 text-white shadow-soft md:p-10 lg:p-12">
+          <div className="grid gap-10 lg:grid-cols-[.88fr_1.12fr] lg:items-start">
+            <div className="lg:sticky lg:top-28"><div className="text-xs font-black tracking-[.18em] text-blue-300">READY TO BUILD?</div><h2 className="mt-5 max-w-4xl text-[clamp(40px,5vw,72px)] font-black leading-[1.03] tracking-[-.04em]">جاهز نبني الشيء القادم؟</h2><p className="mt-5 max-w-2xl text-lg leading-9 text-slate-300">قل لنا شنو تريد تبني، تأتمت أو تطور. الطلب يدخل مباشرة إلى NEXORA CRM حتى يصير عنده مسار متابعة واضح.</p><div className="mt-8 space-y-3 text-sm font-bold text-slate-300"><span className="flex items-center gap-2"><CheckCircle2 size={17} className="text-emerald-400"/> تسجيل مباشر داخل CRM</span><span className="flex items-center gap-2"><CheckCircle2 size={17} className="text-emerald-400"/> مراجعة بشرية قبل أي إجراء</span><span className="flex items-center gap-2"><CheckCircle2 size={17} className="text-emerald-400"/> لا نطلب منك أي كلمات مرور</span></div></div>
+            <ContactForm />
+          </div>
         </div>
       </section>
 
