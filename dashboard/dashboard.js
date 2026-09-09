@@ -21,6 +21,7 @@
     .then(()=>load('./auth-ui-fix.js?v=auth-20260909-2'))
     .then(()=>load('./auth-session-fix.js?v=session-20260909-1'))
     .then(()=>load('./ui-actions.js?v=actions-20260909-2'))
+    .then(()=>load('../route-guard.js?v=routes-20260909-2'))
     .catch(err=>{
       console.error('NEXORA loader',err);
       const n=document.getElementById('authNote');
