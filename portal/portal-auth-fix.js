@@ -5,6 +5,10 @@
   const portalUrl=`${location.origin}${base}/portal/`;
   const recoveryUrl=`${portalUrl}?recovery=1`;
 
+  if(!document.querySelector('link[data-titanium-portal]')){
+    const l=document.createElement('link');l.rel='stylesheet';l.href='./titanium-portal.css?v=titanium-20260909-1';l.dataset.titaniumPortal='1';document.head.appendChild(l);
+  }
+
   document.querySelectorAll('a[href="/"],a[href="/dashboard/"],a[href="/portal/"]').forEach(a=>{
     const h=a.getAttribute('href');
     if(h==='/')a.href=homeUrl;
@@ -68,4 +72,6 @@
   if(params.get('recovery')==='1'||hash.get('type')==='recovery')setTimeout(showRecovery,60);
   sb.auth.onAuthStateChange(event=>{if(event==='PASSWORD_RECOVERY')setTimeout(showRecovery,0)});
   window.NEXORA_PORTAL_AUTH={homeUrl,dashboardUrl,portalUrl,recoveryUrl};
+
+  const s=document.createElement('script');s.src='./titanium-portal.js?v=titanium-20260909-1';s.async=false;document.head.appendChild(s);
 })();
