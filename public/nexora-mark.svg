@@ -1,16 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="NEXORA">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="NEXORA">
   <defs>
-    <linearGradient id="a" x1="15" y1="15" x2="78" y2="82" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#56C8FF"/>
-      <stop offset=".48" stop-color="#0A84FF"/>
-      <stop offset="1" stop-color="#0047C7"/>
+    <linearGradient id="nexora-a" x1="18" y1="20" x2="88" y2="98" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#55D4FF"/>
+      <stop offset="0.48" stop-color="#168CFF"/>
+      <stop offset="1" stop-color="#0B3DBF"/>
     </linearGradient>
-    <linearGradient id="b" x1="72" y1="12" x2="27" y2="78" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#149BFF"/>
-      <stop offset="1" stop-color="#073B9B"/>
+    <linearGradient id="nexora-b" x1="66" y1="23" x2="101" y2="53" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#23B8FF"/>
+      <stop offset="1" stop-color="#0867E8"/>
     </linearGradient>
   </defs>
-  <path d="M13 73V26c0-8 9-12 15-6l45 48c5 6 1 15-7 15H50L28 59v14c0 6-4 10-10 10s-5-4-5-10Z" fill="url(#a)"/>
-  <path d="M38 29 52 14c3-3 7-5 11-5h20L57 38c-5 5-13 5-19-1l-3-3 3-5Z" fill="url(#a)"/>
-  <path d="M24 19c3 0 6 1 8 4l50 53c2 2 2 5 1 7H65L18 33c-6-6-2-14 6-14Z" fill="url(#b)" opacity=".92"/>
+  <path d="M19 89V30c0-7.8 9.4-11.7 14.9-6.2L89.5 79.4c6.1 6.1 1.8 16.6-6.9 16.6H70.1L38.7 64.6V89c0 12.7-19.7 12.7-19.7 0Z" fill="url(#nexora-a)"/>
+  <path d="M69.4 23.2h28.9c5.3 0 8 6.4 4.3 10.1L87 49.7a10.2 10.2 0 0 1-14.4 0L63.5 41c-6.3-6.1-2-17.8 5.9-17.8Z" fill="url(#nexora-b)"/>
 </svg>

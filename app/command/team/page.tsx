@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { CheckCircle2, Copy, Plus, Search, Shield, UserCog, UserPlus, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { withBasePath } from '@/lib/base-path'
 
 type Member={id:string;email:string;full_name:string|null;role:string;active:boolean;position:string|null;created_at:string}
 type Access={email:string;role:string;active:boolean;full_name:string|null;created_at:string;updated_at:string}
@@ -55,7 +56,7 @@ export default function TeamPage(){
     setBusy('');await load()
   }
   async function copyActivation(row:Access){
-    const link=`${window.location.origin}/login?mode=activate&email=${encodeURIComponent(row.email)}`
+    const link=`${window.location.origin}${withBasePath(`/login?mode=activate&email=${encodeURIComponent(row.email)}`)}`
     await navigator.clipboard.writeText(link);setSuccess(`تم نسخ رابط تفعيل ${row.email}`)
   }
 

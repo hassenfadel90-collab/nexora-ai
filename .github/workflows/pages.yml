@@ -1,4 +1,4 @@
-name: Deploy NEXORA V2 to GitHub Pages
+name: Deploy NEXORA Titanium to GitHub Pages
 
 on:
   push:
@@ -41,32 +41,56 @@ jobs:
       - name: TypeScript check
         run: npx tsc --noEmit
 
-      - name: Build NEXORA V2 static export
+      - name: GitHub Pages route guard
+        run: |
+          set -euo pipefail
+          bad=$(grep -RInE "window\.location\.(replace|href)[^(=]*[=(][[:space:]]*['\"]/|window\.location\.origin[[:space:]]*\+[[:space:]]*['\"]/|window\.location\.origin\}\/|src=['\"]/nexora-mark\.svg" app components lib --include='*.tsx' --include='*.ts' || true)
+          if [ -n "$bad" ]; then
+            echo "$bad"
+            echo 'Unscoped browser route found. Use withBasePath().'
+            exit 1
+          fi
+
+      - name: Build production static export
         run: npm run build
 
       - name: Release smoke check
         run: |
           set -euo pipefail
-          test -f out/index.html
-          test -f out/en/index.html
-          test -f out/login/index.html
-          test -f out/command/index.html
-          test -f out/command/leads/index.html
-          test -f out/command/projects/index.html
-          test -f out/command/tasks/index.html
-          test -f out/command/team/index.html
-          test -f out/command/clients/index.html
-          test -f out/command/files/index.html
-          test -f out/command/messages/index.html
-          test -f out/portal/index.html
-          test -f out/portal/login/index.html
-          test -f out/portal/activate/index.html
-          test -f out/portal/messages/index.html
-          test -f out/reset-password/index.html
-          test -f out/nexora-mark.svg
-          test -f out/service-worker.js
+          for f in \
+            out/index.html \
+            out/en/index.html \
+            out/login/index.html \
+            out/reset-password/index.html \
+            out/command/index.html \
+            out/command/leads/index.html \
+            out/command/projects/index.html \
+            out/command/tasks/index.html \
+            out/command/team/index.html \
+            out/command/clients/index.html \
+            out/command/files/index.html \
+            out/command/messages/index.html \
+            out/command/proposals/index.html \
+            out/command/invoices/index.html \
+            out/command/agents/index.html \
+            out/command/automations/index.html \
+            out/command/approvals/index.html \
+            out/command/analytics/index.html \
+            out/command/activity/index.html \
+            out/command/settings/index.html \
+            out/portal/index.html \
+            out/portal/login/index.html \
+            out/portal/activate/index.html \
+            out/portal/messages/index.html \
+            out/insights/index.html \
+            out/security/index.html \
+            out/status/index.html \
+            out/nexora-mark.svg \
+            out/service-worker.js; do
+              test -f "$f" || { echo "Missing release file: $f"; exit 1; }
+          done
           touch out/.nojekyll
-          echo 'NEXORA V2 release files verified.'
+          echo 'NEXORA Titanium release files verified.'
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
